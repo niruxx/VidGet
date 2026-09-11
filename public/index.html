@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vidget</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="bg-glow" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="brand-mark">V</span>
+        <span class="brand-name">Vidget</span>
+      </div>
+      <button class="icon-btn" id="settings-btn" aria-label="Open settings" title="Settings">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="1.6"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.04 1.56V20a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.04-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87A1.7 1.7 0 0 0 2.6 12.46H2.5a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.15 7.4a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H8.6A1.7 1.7 0 0 0 9.64 1.54V1.5a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.04 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.05a1.7 1.7 0 0 0 1.56 1.04h.09a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.56 1.04Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="app">
+    <div class="hero">
+      <h1 class="hero-title">One tool, every format.</h1>
+      <p class="tagline">Grab YouTube videos or convert your own files — fast, local, no uploads to strangers' servers.</p>
+    </div>
+
+    <nav class="tabs" role="tablist" id="tabs">
+      <button class="tab active" data-tab="youtube" role="tab" aria-selected="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M22 12s0-3.4-.4-5A3.4 3.4 0 0 0 19.2 4.6C17.5 4 12 4 12 4s-5.5 0-7.2.6A3.4 3.4 0 0 0 2.4 7C2 8.6 2 12 2 12s0 3.4.4 5a3.4 3.4 0 0 0 2.4 2.4C6.5 20 12 20 12 20s5.5 0 7.2-.6a3.4 3.4 0 0 0 2.4-2.4c.4-1.6.4-5 .4-5Z" stroke="currentColor" stroke-width="1.6"/><path d="M10 15.2 15.5 12 10 8.8v6.4Z" fill="currentColor"/></svg>
+        Video Downloader
+      </button>
+      <button class="tab" data-tab="convert" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 9V5a1 1 0 0 1 1-1h9l5 5v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13 4v5h5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m3 15 3-3 3 3M6 12v7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Video Converter
+      </button>
+      <button class="tab" data-tab="image" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.6"/><circle cx="8.5" cy="9.5" r="1.5" stroke="currentColor" stroke-width="1.6"/><path d="m4 17 5-5 4 4 3-3 4 4" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        Image Converter
+      </button>
+      <span class="tab-indicator" id="tab-indicator"></span>
+    </nav>
+
+    <main class="panels">
+      <!-- YouTube Downloader -->
+      <section class="panel active" id="panel-youtube">
+        <div class="card">
+          <h2 class="panel-title">Grab video from anywhere</h2>
+          <p class="panel-subtitle">Paste a link — YouTube, Vimeo, Twitter/X, SoundCloud, Twitch, and 1800+ other sites.</p>
+
+          <form id="yt-form" class="row">
+            <div class="url-field">
+              <input type="url" id="yt-url" placeholder="Paste any video link to get started…" required autocomplete="off" />
+            </div>
+          </form>
+
+          <div id="yt-fetch-progress" class="progress-wrap hidden">
+            <div class="progress-bar indeterminate"><div class="progress-fill"></div></div>
+            <p class="muted small">Looking up details…</p>
+          </div>
+
+          <div id="yt-error" class="error hidden"></div>
+
+          <div id="yt-result" class="yt-result hidden">
+            <img id="yt-thumb" alt="Video thumbnail" />
+            <div class="yt-meta">
+              <h3 id="yt-title"></h3>
+              <p id="yt-author" class="muted"></p>
+
+              <div class="quality-row">
+                <label for="yt-quality">Quality</label>
+                <select id="yt-quality"></select>
+              </div>
+
+              <div class="btn-group">
+                <button class="btn-primary" id="yt-download-video">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0-4-4m4 4 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                  Download Video
+                </button>
+                <button class="btn-secondary" id="yt-download-audio">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M9 18V5l11-2v13" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="6" cy="18" r="3" stroke="currentColor" stroke-width="1.7"/><circle cx="17" cy="16" r="3" stroke="currentColor" stroke-width="1.7"/></svg>
+                  Download MP3
+                </button>
+                <button class="btn-secondary" id="yt-download-thumb">
+                  <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="m3 15 5-4 4 3 4-5 5 6" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="8" cy="9" r="1.4" fill="currentColor"/></svg>
+                  Download Thumbnail
+                </button>
+              </div>
+
+              <div id="yt-progress-wrap" class="progress-wrap hidden">
+                <div class="progress-bar"><div id="yt-progress-fill" class="progress-fill processing"></div></div>
+                <p id="yt-progress-label" class="muted small">Preparing…</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Video Converter -->
+      <section class="panel" id="panel-convert">
+        <div class="card">
+          <h2 class="panel-title">Convert anything</h2>
+          <p class="panel-subtitle">Drop a file, choose a format, and download the result.</p>
+
+          <div id="drop-zone" class="drop-zone">
+            <input type="file" id="file-input" hidden />
+            <svg viewBox="0 0 24 24" fill="none" class="upload-icon"><path d="M12 16V4m0 0-4 4m4-4 4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <p><strong>Click to upload</strong> or drag &amp; drop a video / audio file</p>
+            <p class="muted small">Up to 2GB</p>
+          </div>
+
+          <div id="file-info" class="file-info hidden">
+            <div class="file-info-name">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M4 9V5a1 1 0 0 1 1-1h9l5 5v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              <span id="file-name"></span>
+              <span id="file-size" class="muted small"></span>
+            </div>
+            <button id="file-remove" class="btn-icon" title="Remove file">&times;</button>
+          </div>
+
+          <div class="format-section">
+            <div class="format-group">
+              <p class="muted small format-label">Video</p>
+              <div class="format-grid" id="format-grid-video"></div>
+            </div>
+            <div class="format-group">
+              <p class="muted small format-label">Audio</p>
+              <div class="format-grid" id="format-grid-audio"></div>
+            </div>
+          </div>
+
+          <button class="btn-primary btn-block" id="convert-btn" disabled>Convert Now</button>
+
+          <div id="progress-wrap" class="progress-wrap hidden">
+            <div class="progress-bar"><div id="progress-fill" class="progress-fill processing"></div></div>
+            <p id="progress-label" class="muted small">Preparing…</p>
+          </div>
+
+          <div id="convert-error" class="error hidden"></div>
+
+          <div id="convert-result" class="convert-result hidden">
+            <p>Your file is ready.</p>
+            <a id="convert-download" class="btn-primary" download>Download Converted File</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Image Converter -->
+      <section class="panel" id="panel-image">
+        <div class="card">
+          <h2 class="panel-title">Convert images</h2>
+          <p class="panel-subtitle">Drop an image, pick a format. Drop a GIF to browse and grab individual frames.</p>
+
+          <div id="image-drop-zone" class="drop-zone">
+            <input type="file" id="image-file-input" accept=".png,.jpg,.jpeg,.bmp,.tif,.tiff,.gif,.webm" hidden />
+            <svg viewBox="0 0 24 24" fill="none" class="upload-icon"><path d="M12 16V4m0 0-4 4m4-4 4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <p><strong>Click to upload</strong> or drag &amp; drop an image</p>
+            <p class="muted small">PNG, JPG, BMP, TIFF, GIF, WebM · Up to 500MB</p>
+          </div>
+
+          <div id="image-fetch-progress" class="progress-wrap hidden">
+            <div class="progress-bar indeterminate"><div class="progress-fill"></div></div>
+            <p class="muted small">Reading file…</p>
+          </div>
+
+          <div id="image-file-info" class="file-info hidden">
+            <div class="file-info-name">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M4 9V5a1 1 0 0 1 1-1h9l5 5v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              <span id="image-file-name"></span>
+            </div>
+            <button id="image-file-remove" class="btn-icon" title="Remove file">&times;</button>
+          </div>
+
+          <div id="image-error" class="error hidden"></div>
+
+          <div id="gif-frames-section" class="hidden">
+            <p class="drawer-label" id="gif-frames-heading">Frames</p>
+            <div class="gif-frames-grid" id="gif-frames-grid"></div>
+          </div>
+
+          <div id="image-format-section" class="format-section hidden">
+            <div class="format-group">
+              <p class="muted small format-label">Convert to</p>
+              <div class="format-grid" id="image-format-grid"></div>
+            </div>
+          </div>
+
+          <button class="btn-primary btn-block hidden" id="image-convert-btn" disabled>Convert Now</button>
+
+          <div id="image-progress-wrap" class="progress-wrap hidden">
+            <div class="progress-bar indeterminate"><div class="progress-fill"></div></div>
+            <p class="muted small">Converting…</p>
+          </div>
+
+          <div id="image-convert-result" class="convert-result hidden">
+            <p>Your file is ready and downloading.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="drawer-overlay" id="drawer-overlay"></div>
+  <aside class="settings-drawer" id="settings-drawer" aria-hidden="true">
+    <div class="drawer-header">
+      <h2>Settings</h2>
+      <button class="icon-btn" id="drawer-close" aria-label="Close settings">
+        <svg viewBox="0 0 24 24" fill="none"><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <div class="drawer-section">
+      <p class="drawer-label">Appearance</p>
+      <div class="segmented" id="theme-options">
+        <button type="button" data-theme-choice="dark">Dark</button>
+        <button type="button" data-theme-choice="light">Light</button>
+        <button type="button" data-theme-choice="system">Auto</button>
+        <span class="segmented-indicator"></span>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <p class="drawer-label">Accent color</p>
+      <div class="accent-swatches" id="accent-swatches">
+        <button type="button" class="swatch" data-accent="violet" style="--swatch:#7c5cff" title="Violet"></button>
+        <button type="button" class="swatch" data-accent="pink" style="--swatch:#ff5c9c" title="Pink"></button>
+        <button type="button" class="swatch" data-accent="teal" style="--swatch:#22c7ab" title="Teal"></button>
+        <button type="button" class="swatch" data-accent="amber" style="--swatch:#ffa53d" title="Amber"></button>
+        <button type="button" class="swatch" data-accent="blue" style="--swatch:#3d8bff" title="Blue"></button>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <p class="drawer-label">Default video quality</p>
+      <select id="default-quality">
+        <option value="">Best available</option>
+        <option value="2160">2160p (4K)</option>
+        <option value="1440">1440p</option>
+        <option value="1080">1080p</option>
+        <option value="720">720p</option>
+        <option value="480">480p</option>
+        <option value="360">360p</option>
+      </select>
+    </div>
+
+    <div class="drawer-section row-between">
+      <div>
+        <p class="drawer-label" style="margin-bottom:2px">Reduce motion</p>
+        <p class="muted small">Turns off decorative animations</p>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="reduce-motion-toggle" />
+        <span class="switch-track"><span class="switch-thumb"></span></span>
+      </label>
+    </div>
+  </aside>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
