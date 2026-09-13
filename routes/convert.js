@@ -54,6 +54,7 @@ router.post('/start', upload.single('file'), (req, res) => {
 
 function runConversion(jobId, inputPath, outputPath, targetFormat) {
   updateJob(jobId, { status: 'processing' });
+  fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
   ffmpeg.ffprobe(inputPath, (probeErr, metadata) => {
     const durationSec = probeErr ? 0 : Number(metadata?.format?.duration) || 0;
