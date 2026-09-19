@@ -8,7 +8,7 @@ const ACCENT_PALETTES = {
 };
 
 const SETTINGS_KEY = 'vidget:settings';
-const DEFAULT_SETTINGS = { theme: 'dark', accent: 'violet', reduceMotion: false, defaultQuality: '' };
+const DEFAULT_SETTINGS = { theme: 'dark', accent: 'violet', reduceMotion: false, animatedBackground: false, defaultQuality: '' };
 
 function loadSettings() {
   try {
@@ -40,6 +40,7 @@ function applySettings() {
   document.documentElement.style.setProperty('--accent-2', palette.accent2);
 
   document.documentElement.classList.toggle('reduce-motion', !!settings.reduceMotion);
+  document.documentElement.classList.toggle('bg-animated', !!settings.animatedBackground && !settings.reduceMotion);
 }
 
 applySettings();
@@ -137,6 +138,15 @@ const reduceMotionToggle = document.getElementById('reduce-motion-toggle');
 reduceMotionToggle.checked = settings.reduceMotion;
 reduceMotionToggle.addEventListener('change', () => {
   settings.reduceMotion = reduceMotionToggle.checked;
+  saveSettings(settings);
+  applySettings();
+});
+
+// ---------- Animated background toggle ----------
+const animatedBgToggle = document.getElementById('animated-bg-toggle');
+animatedBgToggle.checked = settings.animatedBackground;
+animatedBgToggle.addEventListener('change', () => {
+  settings.animatedBackground = animatedBgToggle.checked;
   saveSettings(settings);
   applySettings();
 });
@@ -261,7 +271,7 @@ async function fetchVideoInfo(url) {
     ytAuthor.textContent = data.author || '';
 
     const hasQualities = data.qualities && data.qualities.length > 0;
-    ytDownloadVideoBtn.classList.toggle('hidden', !hasQualities);
+    ytDownloadVideoBtn.classList.toggle('hidden', data.hasVideo === false);
     ytDownloadThumbBtn.classList.toggle('hidden', !currentThumbnailUrl);
     document.querySelector('.quality-row').classList.toggle('hidden', !hasQualities);
 

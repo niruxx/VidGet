@@ -77,11 +77,16 @@ router.get('/info', async (req, res) => {
     }
     qualities.sort((a, b) => b.height - a.height);
 
+    // Only treat a source as audio-only when every format explicitly has no video codec.
+    const formats = info.formats || [];
+    const audioOnly = formats.length > 0 && formats.every((f) => f.vcodec === 'none');
+
     res.json({
       title: info.title,
       author: info.uploader || info.channel || '',
       duration: info.duration,
       thumbnail: info.thumbnail,
+      hasVideo: !audioOnly,
       qualities: qualities.slice(0, 8),
     });
   } catch (err) {
