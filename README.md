@@ -59,7 +59,7 @@ To update to the latest commits:
 bash update.sh
 ```
 
-`update.sh` fast-forwards to the newest upstream commit, reinstalls npm packages only if they changed, and restarts the service. It never touches `Saves/`, `logs/`, `tmp/` or your `config.json` (local edits to `config.json` are backed up and restored around the update; local edits to any other tracked file abort the update). Flags: `--check` (report only), `--refresh-ytdlp` (re-download the latest yt-dlp), `--reinstall-deps`, `--no-restart`.
+`update.sh` fast-forwards to the newest upstream commit, reinstalls npm packages only if they changed, and restarts the service. It never touches `Saves/`, `logs/`, `tmp/` or your `config.json` (local edits to `config.json` are backed up and restored around the update). If you have local edits to other tracked files, the script asks whether to stash them for you and re-applies them afterwards; answering no leaves them in place and tries the update anyway, stashing them automatically only if git says they clash with the update. If re-applying conflicts, your changes stay safe in `git stash` (recover with `git stash pop`). The script never offers a way to cancel. Flags: `--check` (report only), `--refresh-ytdlp` (re-download the latest yt-dlp), `--reinstall-deps`, `--no-restart`, `-y` (accept the default answer to every question; also the behavior when run without a terminal).
 
 Vidget has no authentication and listens on all interfaces — restrict access with a firewall or reverse proxy if the machine is reachable from untrusted networks.
 

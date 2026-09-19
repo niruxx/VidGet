@@ -10,8 +10,8 @@
 #   - Saves/, logs/ and tmp/ are git-ignored, so git leaves them alone.
 #   - config.json is tracked by git, so it is backed up and restored around
 #     the update (your local edits always win).
-#   - Local edits to any other tracked file abort the update instead of being
-#     overwritten.
+#   - Local edits to any other tracked file are stashed (you are asked how to
+#     proceed) and re-applied after the update. Nothing is ever discarded.
 
 set -euo pipefail
 
@@ -21,6 +21,8 @@ NO_RESTART=0
 FORCE_DEPS=0
 REFRESH_YTDLP=0
 CHECK_ONLY=0
+ASSUME_YES=0
+STASHED=0
 CONFIG_BACKUP=""
 
 if [[ -t 1 ]]; then
@@ -46,7 +48,11 @@ Options:
   --reinstall-deps  Reinstall npm dependencies even if package files did not change
   --refresh-ytdlp   Re-download the latest yt-dlp binary (YouTube changes often)
   --name NAME       systemd service name (default: ${SERVICE_NAME})
+  -y, --yes         Non-interactive: accept the default answer to every question
   -h, --help        Show this help
+
+If you have local changes to tracked files, you are asked whether to stash them
+for you (they are re-applied after the update).
 EOF
 }
 
@@ -58,11 +64,21 @@ parse_args() {
       --reinstall-deps) FORCE_DEPS=1 ;;
       --refresh-ytdlp)  REFRESH_YTDLP=1 ;;
       --name)           [[ $# -ge 2 ]] || die "--name needs a value"; SERVICE_NAME="$2"; shift ;;
+      -y|--yes)         ASSUME_YES=1 ;;
       -h|--help)        usage; exit 0 ;;
       *)                usage >&2; die "Unknown option: $1" ;;
     esac
     shift
   done
+}
+
+# ask_yes "question": default answer is yes. "No" is never "cancel" - it selects
+# the alternative way forward described in the surrounding message.
+ask_yes() {
+  local reply
+  if [[ $ASSUME_YES -eq 1 || ! -t 0 ]]; then return 0; fi
+  read -r -p "$1 [Y/n] " reply || reply=""
+  [[ -z "$reply" || "$reply" =~ ^[Yy] ]]
 }
 
 restore_config() {
@@ -73,7 +89,39 @@ restore_config() {
     log "Restored your config.json"
   fi
 }
-trap restore_config EXIT
+
+stash_local_changes() {
+  local msg="vidget update $(date +%Y-%m-%dT%H:%M:%S)"
+  git stash push --quiet -m "$msg" -- . ':(exclude)config.json' || die "Could not stash your local changes."
+  STASHED=1
+  log "Stashed your local changes (\"${msg}\")"
+}
+
+# Put stashed changes back. If they no longer apply cleanly, leave them safely
+# in the stash (git keeps the entry when a pop conflicts) and clean the tree.
+reapply_stash() {
+  [[ $STASHED -eq 1 ]] || return 0
+  STASHED=0
+  if git stash pop --quiet; then
+    log "Re-applied your local changes"
+  else
+    git reset --hard --quiet HEAD
+    warn "Your local changes conflict with the new version, so they were left in the stash (see: git stash list)."
+    warn "Re-apply them when ready with: git stash pop"
+  fi
+}
+
+cleanup() {
+  # If the update failed after stashing, put the user's changes back.
+  if [[ $STASHED -eq 1 ]]; then
+    STASHED=0
+    git -C "$APP_DIR" stash pop --quiet >/dev/null 2>&1 \
+      && log "Re-applied your stashed changes" \
+      || warn "Your changes are in the stash; recover them with: git stash pop"
+  fi
+  restore_config
+}
+trap cleanup EXIT
 
 config_is_modified() {
   git ls-files --error-unmatch config.json >/dev/null 2>&1 \
@@ -146,13 +194,6 @@ main() {
   remote="$(git config "branch.${branch}.remote")" || die "Branch '${branch}' has no upstream. Run: git branch --set-upstream-to=origin/${branch}"
   upstream="$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}')" || die "Could not resolve upstream for '${branch}'."
 
-  local dirty
-  dirty="$(git status --porcelain --untracked-files=no | grep -Ev '^.. config\.json$' || true)"
-  if [[ -n "$dirty" ]]; then
-    printf '%s\n' "$dirty" >&2
-    die "You have local changes to tracked files (listed above). Commit or stash them, then re-run."
-  fi
-
   log "Checking ${upstream} for updates"
   git fetch --quiet "$remote" || die "git fetch failed (network problem?)."
 
@@ -188,6 +229,24 @@ main() {
     return
   fi
 
+  # Local edits to tracked files (config.json is handled separately below).
+  local dirty
+  dirty="$(git status --porcelain --untracked-files=no | grep -Ev '^.. config\.json$' || true)"
+  if [[ -n "$dirty" ]]; then
+    echo
+    warn "You have local changes to tracked files:"
+    printf '  %s\n' "$dirty" >&2
+    echo
+    echo "The update replaces tracked files, so your changes can either be set aside"
+    echo "safely (git stash) and put back afterwards, or left in place while I try the"
+    echo "update anyway (this only works if the update does not touch the same files)."
+    if ask_yes "Stash your local changes for you and re-apply them after the update?"; then
+      stash_local_changes
+    else
+      log "Leaving your changes in place and trying the update anyway"
+    fi
+  fi
+
   # Protect the user's config.json (tracked in git) from the merge.
   if config_is_modified; then
     CONFIG_BACKUP="$(mktemp)"
@@ -197,7 +256,19 @@ main() {
   fi
 
   log "Updating $(git rev-parse --short HEAD) -> $(git rev-parse --short "$remote_head")"
-  git merge --ff-only --quiet "$upstream" || die "Fast-forward failed; nothing was changed except a temporary restore of config.json."
+  local merge_out
+  if ! merge_out="$(git merge --ff-only --quiet "$upstream" 2>&1)"; then
+    if [[ $STASHED -eq 0 && -n "$dirty" ]]; then
+      warn "Git cannot apply the update on top of your local changes to the same files."
+      log "Stashing them so the update can continue (they will be re-applied afterwards)"
+      stash_local_changes
+      merge_out="$(git merge --ff-only --quiet "$upstream" 2>&1)" || { printf '%s\n' "$merge_out" >&2; die "Update failed; your files were restored."; }
+    else
+      printf '%s\n' "$merge_out" >&2
+      die "Update failed; your files were restored."
+    fi
+  fi
+  reapply_stash
   restore_config
 
   echo
