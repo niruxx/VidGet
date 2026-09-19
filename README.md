@@ -19,9 +19,29 @@ This downloads a bundled `ffmpeg`/`ffprobe` and a `yt-dlp` binary automatically 
 npm start
 ```
 
-Then open http://localhost:3000.
+Then open http://localhost:3000 (or the port you configured — see below).
 
 Use `npm run dev` to auto-restart on file changes.
+
+## Custom port
+
+By default Vidget listens on port `3000`. To change it, edit the `port` value in `config.json` in the project root:
+
+```json
+{
+  "port": 8080,
+  "logRetentionDays": 0,
+  "savesRetentionDays": "*"
+}
+```
+
+Restart the server and open `http://localhost:8080`. The startup message prints the port in use.
+
+- The port must be a whole number from 1 to 65535. Anything else (or a missing/unreadable `config.json`) falls back to `3000`.
+- Ports below 1024 need elevated privileges on Linux (a systemd system service can bind them if you set the port through `bash install.sh --port 80`, which grants the needed capability; re-run the installer if you change to a low port later. A user service or plain `npm start` cannot bind them).
+- A `PORT` environment variable takes priority over `config.json`, e.g. for a one-off run: `PORT=9000 npm start` (Windows PowerShell: `$env:PORT=9000; npm start`).
+- If you run Vidget as a systemd service, restart it after changing the port: `sudo systemctl restart vidget` (or `systemctl --user restart vidget`). The installer can also set the port for you: `bash install.sh --port 8080`.
+- `bash update.sh` keeps your `config.json`, so your port survives updates.
 
 ## Linux install (with systemd service)
 
