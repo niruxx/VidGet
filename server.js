@@ -25,6 +25,18 @@ const PORT = process.env.PORT || getConfig().port;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+const { version } = require('./package.json');
+app.get('/api/meta', (req, res) => {
+  const { logRetentionDays, savesRetentionDays } = getConfig();
+  res.json({
+    version,
+    logRetentionDays,
+    savesRetentionDays,
+    limits: { videoUploadMB: 2048, imageUploadMB: 500 },
+    audioFormats: youtubeRouter.AUDIO_FORMATS,
+  });
+});
+
 app.use('/api/youtube', youtubeRouter);
 app.use('/api/convert', convertRouter);
 app.use('/api/image', imageRouter);

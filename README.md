@@ -1,9 +1,12 @@
 # Vidget
 
-A modern web app with two tools:
+A self-hosted, privacy-first media toolkit. No ads, no accounts, no subscriptions, no tracking: everything runs on your own machine.
 
-- **YouTube Downloader** — paste a link, pick a quality, download as MP4 or extract as MP3.
-- **Video Converter** — upload a video/audio file and convert it to MP4, MOV, AVI, MKV, WebM, GIF, MP3, WAV, FLAC, AAC, or OGG.
+- **Downloader**: paste a link from YouTube or 1,800+ other sites (via yt-dlp). Pick a video quality, or save audio as MP3, M4A, Opus, FLAC or WAV. Grab the thumbnail too.
+- **Video converter**: convert video/audio to MP4, MOV, AVI, MKV, WebM, GIF, MP3, WAV, FLAC, AAC or OGG, with an optional max resolution to shrink files.
+- **Image converter**: convert between PNG, JPG, BMP, TIFF, GIF and WebM, and browse/save individual GIF frames.
+
+Other features: cancel running jobs, live upload/convert progress (also shown in the tab title), drop a file anywhere to convert it, paste a link anywhere to fetch it, keyboard shortcuts (`1`/`2`/`3`, `/`), dark/light/auto themes with accent colors, and a local-only history page. Settings and history live in your browser's local storage and are never sent anywhere. Video thumbnails are loaded through your server, so the browser never contacts the source site.
 
 ## Setup
 

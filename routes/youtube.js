@@ -9,6 +9,7 @@ const { createJob, getJob, updateJob } = require('../utils/jobs');
 const { streamJobProgress } = require('../utils/sse');
 const { logDownload } = require('../utils/connectionLog');
 const { getUniqueDestination } = require('../utils/uniqueFile');
+const { killTree } = require('../utils/killTree');
 
 const WORK_DIR = path.join(__dirname, '..', 'tmp', 'youtube');
 const SAVES_DIR = path.join(__dirname, '..', 'Saves');
@@ -19,6 +20,17 @@ fs.mkdirSync(VIDEO_DIR, { recursive: true });
 fs.mkdirSync(AUDIO_DIR, { recursive: true });
 
 const router = express.Router();
+
+const AUDIO_FORMATS = ['mp3', 'm4a', 'opus', 'flac', 'wav'];
+
+async function removeJobFiles(jobId) {
+  // Give killed processes a moment to release file handles (needed on Windows).
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+  const files = await fs.promises.readdir(WORK_DIR).catch(() => []);
+  await Promise.all(
+    files.filter((f) => f.startsWith(jobId)).map((f) => fs.promises.unlink(path.join(WORK_DIR, f)).catch(() => {})),
+  );
+}
 
 function isValidUrl(url) {
   if (typeof url !== 'string') return false;
@@ -95,7 +107,7 @@ router.get('/info', async (req, res) => {
 });
 
 router.post('/download', express.json(), (req, res) => {
-  const { url, formatId, type, title } = req.body || {};
+  const { url, formatId, type, title, audioFormat } = req.body || {};
   if (!isValidUrl(url)) {
     return res.status(400).json({ error: 'Please provide a valid video link.' });
   }
@@ -121,7 +133,7 @@ router.post('/download', express.json(), (req, res) => {
   if (type === 'audio') {
     flags.format = 'bestaudio';
     flags.extractAudio = true;
-    flags.audioFormat = 'mp3';
+    flags.audioFormat = AUDIO_FORMATS.includes(audioFormat) ? audioFormat : 'mp3';
     flags.audioQuality = 0;
   } else {
     flags.format = formatId ? `${formatId}+bestaudio/best` : 'bestvideo+bestaudio/best';
@@ -130,6 +142,12 @@ router.post('/download', express.json(), (req, res) => {
 
   const subprocess = ytdlpExec.exec(url, flags);
   let destinationCount = 0;
+  updateJob(jobId, {
+    cancel: () => {
+      updateJob(jobId, { cancelled: true, status: 'error', error: 'Download cancelled.' });
+      killTree(subprocess);
+    },
+  });
 
   subprocess.stdout?.on('data', (chunk) => {
     for (const line of chunk.toString().split(/\r?\n/)) {
@@ -149,6 +167,7 @@ router.post('/download', express.json(), (req, res) => {
 
   subprocess
     .then(async () => {
+      if (getJob(jobId)?.cancelled) return removeJobFiles(jobId);
       const files = await fs.promises.readdir(WORK_DIR);
       const match = files.find((f) => f.startsWith(jobId));
       if (!match) {
@@ -171,12 +190,13 @@ router.post('/download', express.json(), (req, res) => {
       });
     })
     .catch(() => {
+      if (getJob(jobId)?.cancelled) return removeJobFiles(jobId);
       updateJob(jobId, { status: 'error', error: 'Download failed. The link may be unsupported, private, or restricted.' });
     });
 });
 
 router.get('/thumbnail', async (req, res) => {
-  const { src, title } = req.query;
+  const { src, title, inline } = req.query;
 
   const parsed = isSafeExternalUrl(src);
   if (!parsed) {
@@ -193,7 +213,11 @@ router.get('/thumbnail', async (req, res) => {
     const buffer = Buffer.from(await upstream.arrayBuffer());
 
     res.set('Content-Type', contentType);
-    res.set('Content-Disposition', `attachment; filename="${baseName} - thumbnail.${ext}"`);
+    if (inline) {
+      res.set('Cache-Control', 'private, max-age=3600');
+    } else {
+      res.set('Content-Disposition', `attachment; filename="${baseName} - thumbnail.${ext}"`);
+    }
     res.send(buffer);
   } catch {
     res.status(502).json({ error: 'Could not download thumbnail.' });
@@ -202,6 +226,15 @@ router.get('/thumbnail', async (req, res) => {
 
 router.get('/progress/:jobId', streamJobProgress(getJob));
 
+router.post('/cancel/:jobId', (req, res) => {
+  const job = getJob(req.params.jobId);
+  if (!job || typeof job.cancel !== 'function' || job.status === 'done' || job.status === 'error') {
+    return res.status(404).json({ error: 'Nothing to cancel.' });
+  }
+  job.cancel();
+  res.json({ ok: true });
+});
+
 router.get('/result/:jobId', (req, res) => {
   const job = getJob(req.params.jobId);
   if (!job || job.status !== 'done') {
@@ -209,5 +242,7 @@ router.get('/result/:jobId', (req, res) => {
   }
   res.download(job.outputPath, job.downloadName);
 });
+
+router.AUDIO_FORMATS = AUDIO_FORMATS;
 
 module.exports = router;
