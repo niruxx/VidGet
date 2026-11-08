@@ -105,6 +105,17 @@ bash update.sh
 
 By default Vidget listens on all interfaces over plain HTTP. For a public instance, set the listen address to `127.0.0.1` and put it behind a reverse proxy with HTTPS. See [docs/reverse-proxy.md](docs/reverse-proxy.md).
 
+To uninstall, run `bash uninstall.sh --dry-run` to preview, then `bash uninstall.sh`
+and confirm (or pass `--yes`). Run as the same regular user who installed it,
+without sudo. This stops, disables and removes system and user services created
+by `install.sh`, then permanently deletes `data/` (including the admin account),
+`Saves/`, `logs/`, `tmp/`, `config.json` and `node_modules/` from this checkout.
+Use `--name sonara` if that was your custom service name, or `--system` /
+`--user-service` to select one service scope. Source files, shared system packages,
+and custom data paths outside the checkout remain. User lingering is kept unless
+you pass `--disable-linger`, which can affect other user services. Stop any
+manually started server before uninstalling. See `bash uninstall.sh --help`.
+
 ## Environment variables
 
 Everything can also be set in `/admin`. These variables override `config.json`, or move Vidget's files somewhere else (useful for containers):
