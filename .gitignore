@@ -18,3 +18,4 @@ Saves/Uploaded/*
 .env
 *.log
 logs/
+data/

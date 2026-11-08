@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to content</a>
   <!-- Reusable icons -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs>
@@ -38,6 +39,11 @@
       <symbol id="i-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3 4 14h7l-1 7 9-11h-7l1-7Z"/></symbol>
       <symbol id="i-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></symbol>
       <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.9-3M4 4v4h4M4 13a8 8 0 0 0 14.9 3M20 20v-4h-4"/></symbol>
+      <symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="i-sliders" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
+      <symbol id="i-captions" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10 10.5a2 2 0 1 0 0 3M17 10.5a2 2 0 1 0 0 3"/></symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
     </defs>
   </svg>
 
@@ -76,6 +82,7 @@
         <p class="nav-heading">Vidget</p>
         <a class="nav-item" href="#why" data-page="why"><svg><use href="#i-shield"/></svg><span>Why Vidget</span></a>
         <a class="nav-item" href="#about" data-page="about"><svg><use href="#i-info"/></svg><span>About</span></a>
+        <a class="nav-item" href="#privacy" data-page="privacy"><svg><use href="#i-lock"/></svg><span>Privacy &amp; terms</span></a>
         <a class="nav-item" href="#settings" data-page="settings"><svg><use href="#i-gear"/></svg><span>Settings</span></a>
       </nav>
 
@@ -92,13 +99,18 @@
     </aside>
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
-    <main class="main" id="main">
+    <main class="main" id="main" tabindex="-1">
+      <div class="announcement" id="announcement" role="status" hidden>
+        <svg><use href="#i-info"/></svg>
+        <p id="announcement-text"></p>
+        <button type="button" class="ghost-btn" id="announcement-close" aria-label="Dismiss announcement"><svg><use href="#i-x"/></svg></button>
+      </div>
       <!-- ============ Download ============ -->
       <section class="page" id="page-download" data-title="Download">
         <header class="page-header">
           <p class="eyebrow">Downloader</p>
           <h1>Save video &amp; audio from the web</h1>
-          <p class="lead">Paste a link from YouTube, Vimeo, X, SoundCloud, Twitch and 1,800+ other sites. Everything is fetched by your own server — no middleman.</p>
+          <p class="lead">Paste a link from YouTube, Vimeo, X, SoundCloud, Twitch and 1,800+ other sites. This server fetches it for you, so the source site never sees your device.</p>
         </header>
 
         <div class="card">
@@ -111,7 +123,18 @@
             </div>
             <button type="submit" class="btn btn-primary" id="yt-fetch-btn">Fetch<svg><use href="#i-arrow"/></svg></button>
           </form>
-          <p class="hint muted small">Tip: press <kbd>/</kbd> to focus the link box, or just paste a link anywhere on this page.</p>
+          <div class="hint-row">
+            <p class="hint muted small">Tip: press <kbd>/</kbd> to focus the link box, or just paste a link anywhere on this page.</p>
+            <button type="button" class="btn btn-ghost btn-sm" id="multi-toggle"><svg><use href="#i-list"/></svg>Add several links</button>
+          </div>
+
+          <div id="multi-panel" class="multi-panel hidden">
+            <textarea id="multi-links" rows="4" class="input" placeholder="Paste one link per line" spellcheck="false" aria-label="Links to download"></textarea>
+            <div class="multi-actions">
+              <span class="muted small">Each link is downloaded with your default settings (see Settings).</span>
+              <button type="button" class="btn btn-primary btn-sm" id="multi-add"><svg><use href="#i-plus"/></svg>Add to queue</button>
+            </div>
+          </div>
 
           <div id="yt-fetch-progress" class="skeleton-result hidden" aria-live="polite">
             <div class="skeleton skeleton-thumb"></div>
@@ -132,6 +155,7 @@
             <div class="media-meta">
               <h2 id="yt-title" class="media-title"></h2>
               <p id="yt-author" class="muted"></p>
+              <button type="button" class="link-btn hidden" id="yt-load-playlist"><svg><use href="#i-list"/></svg>This link is part of a playlist. Show the whole playlist</button>
 
               <div class="option-grid">
                 <div class="field" id="yt-type-field">
@@ -158,11 +182,79 @@
                 </label>
               </div>
 
+              <details class="more-options" id="yt-more">
+                <summary><svg><use href="#i-sliders"/></svg>More options<span class="more-summary" id="yt-more-summary"></span></summary>
+                <div class="more-grid">
+                  <div class="field span-all for-video">
+                    <span class="field-label">Subtitles</span>
+                    <select id="yt-subs"><option value="">None</option></select>
+                    <span class="muted small" id="yt-subs-hint">Embedded in the video as a track you can turn on or off.</span>
+                  </div>
+                  <div class="tag-grid span-all for-audio">
+                    <label class="field"><span class="field-label">Title</span><input type="text" class="input" id="yt-tag-title" maxlength="200" /></label>
+                    <label class="field"><span class="field-label">Artist</span><input type="text" class="input" id="yt-tag-artist" maxlength="200" /></label>
+                    <label class="field"><span class="field-label">Album</span><input type="text" class="input" id="yt-tag-album" maxlength="200" /></label>
+                  </div>
+                  <div class="field span-all">
+                    <span class="field-label">Only download part of it</span>
+                    <div class="time-range">
+                      <input type="text" class="input" id="yt-clip-start" placeholder="Start, e.g. 1:30" inputmode="numeric" aria-label="Clip start" />
+                      <span class="muted">to</span>
+                      <input type="text" class="input" id="yt-clip-end" placeholder="End, e.g. 2:45" inputmode="numeric" aria-label="Clip end" />
+                    </div>
+                  </div>
+                  <label class="check for-video"><input type="checkbox" id="yt-muted" /><span>Remove audio</span></label>
+                  <label class="check for-audio"><input type="checkbox" id="yt-normalize" /><span>Normalize loudness</span></label>
+                  <label class="check"><input type="checkbox" id="yt-cover" checked /><span>Add cover art &amp; title info</span></label>
+                  <label class="check hidden" id="yt-sponsor-field"><input type="checkbox" id="yt-sponsorblock" /><span>Cut out sponsor segments <span class="muted">(SponsorBlock)</span></span></label>
+                </div>
+              </details>
+
               <div class="btn-row">
                 <button class="btn btn-primary" id="yt-download"><svg><use href="#i-download"/></svg><span id="yt-download-label">Download video</span></button>
+                <button class="btn btn-secondary" id="yt-queue-add" title="Add to the download queue"><svg><use href="#i-plus"/></svg>Queue</button>
                 <button class="btn btn-secondary" id="yt-download-thumb"><svg><use href="#i-image"/></svg>Thumbnail</button>
+                <button class="btn btn-secondary hidden" id="yt-download-subs"><svg><use href="#i-captions"/></svg>Subtitles (.srt)</button>
               </div>
             </div>
+          </div>
+
+          <div id="yt-playlist" class="playlist hidden">
+            <div class="playlist-head">
+              <div class="playlist-heading">
+                <span class="playlist-icon"><svg><use href="#i-list"/></svg></span>
+                <div>
+                  <h2 class="media-title" id="pl-title"></h2>
+                  <p class="muted small" id="pl-meta"></p>
+                </div>
+              </div>
+              <label class="check"><input type="checkbox" id="pl-all" checked /><span>Select all</span></label>
+            </div>
+            <div class="playlist-opts">
+              <div class="segmented" id="pl-type">
+                <button type="button" data-value="video"><svg><use href="#i-film"/></svg>Video</button>
+                <button type="button" data-value="audio"><svg><use href="#i-music"/></svg>Audio</button>
+                <span class="segmented-indicator"></span>
+              </div>
+              <select id="pl-quality" aria-label="Video quality">
+                <option value="">Best available</option>
+                <option value="2160">Up to 2160p</option>
+                <option value="1440">Up to 1440p</option>
+                <option value="1080">Up to 1080p</option>
+                <option value="720">Up to 720p</option>
+                <option value="480">Up to 480p</option>
+                <option value="360">Up to 360p</option>
+              </select>
+              <select id="pl-audio-format" class="hidden" aria-label="Audio format">
+                <option value="mp3">MP3</option>
+                <option value="m4a">M4A (AAC)</option>
+                <option value="opus">Opus</option>
+                <option value="flac">FLAC</option>
+                <option value="wav">WAV</option>
+              </select>
+              <button class="btn btn-primary" id="pl-queue"><svg><use href="#i-plus"/></svg><span id="pl-queue-label">Add to queue</span></button>
+            </div>
+            <ul class="playlist-list" id="pl-list"></ul>
           </div>
 
           <div id="yt-progress-wrap" class="job hidden" aria-live="polite">
@@ -171,8 +263,23 @@
               <span class="job-percent" id="yt-progress-percent"></span>
               <button class="btn btn-ghost btn-sm" id="yt-cancel"><svg><use href="#i-x"/></svg>Cancel</button>
             </div>
-            <div class="progress-bar"><div id="yt-progress-fill" class="progress-fill"></div></div>
+            <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-labelledby="yt-progress-label"><div id="yt-progress-fill" class="progress-fill"></div></div>
           </div>
+        </div>
+
+        <div class="card queue-card hidden" id="queue-card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">Download queue</h2>
+              <p class="muted small" id="queue-summary"></p>
+            </div>
+            <div class="btn-row tight">
+              <button class="btn btn-ghost btn-sm" id="queue-clear-done">Clear finished</button>
+              <button class="btn btn-ghost btn-sm" id="queue-cancel-all">Cancel all</button>
+            </div>
+          </div>
+          <ul class="queue-list" id="queue-list"></ul>
+          <p class="muted small queue-note">Files are saved automatically as each one finishes. Download links expire after <span class="ttl-text">30 minutes</span>.</p>
         </div>
 
         <div class="feature-strip">
@@ -187,26 +294,20 @@
         <header class="page-header">
           <p class="eyebrow">Video &amp; audio converter</p>
           <h1>Convert any media file</h1>
-          <p class="lead">Turn a video into another format, shrink it, make a GIF, or pull out the audio. Files go to your server and nowhere else.</p>
+          <p class="lead">Turn a video into another format, shrink it, make a GIF, or pull out the audio. Files are only sent to this server, and deleted from it after <span class="ttl-text">30 minutes</span>.</p>
         </header>
 
         <div class="card">
           <div class="step"><span class="step-num">1</span><h3>Choose a file</h3></div>
           <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="Choose a video or audio file">
-            <input type="file" id="file-input" accept="video/*,audio/*,.mkv,.flv,.ts,.m4a,.opus" hidden />
+            <input type="file" id="file-input" accept="video/*,audio/*,.mkv,.flv,.ts,.m4a,.opus" multiple hidden />
             <div class="drop-icon"><svg><use href="#i-upload"/></svg></div>
-            <p><strong>Click to choose</strong> or drag &amp; drop a video or audio file</p>
-            <p class="muted small">Up to 2 GB · MP4, MOV, MKV, AVI, WebM, MP3, WAV and more</p>
+            <p><strong>Click to choose</strong> or drag &amp; drop video or audio files</p>
+            <p class="muted small">Up to <span id="video-limit-text">2 GB</span> each · MP4, MOV, MKV, AVI, WebM, MP3, WAV and more · several files at once for batch conversion</p>
           </div>
 
-          <div id="file-info" class="file-row hidden">
-            <div class="file-icon"><svg><use href="#i-film"/></svg></div>
-            <div class="file-text">
-              <span id="file-name" class="file-name"></span>
-              <span id="file-size" class="muted small"></span>
-            </div>
-            <button id="file-remove" class="icon-btn" title="Remove file" aria-label="Remove file"><svg><use href="#i-x"/></svg></button>
-          </div>
+          <ul id="file-list" class="file-list hidden"></ul>
+          <button type="button" class="btn btn-ghost btn-sm hidden" id="file-add-more"><svg><use href="#i-plus"/></svg>Add more files</button>
 
           <div class="step"><span class="step-num">2</span><h3>Pick an output format</h3></div>
           <div class="format-section">
@@ -220,15 +321,72 @@
             </div>
           </div>
 
-          <div id="resolution-section" class="hidden">
-            <div class="step"><span class="step-num">3</span><h3>Options</h3></div>
-            <label class="field field-inline">
-              <span class="field-label">Max resolution</span>
-              <select id="convert-resolution">
-                <option value="">Keep original</option>
-              </select>
-            </label>
-            <p class="muted small" style="margin-top:6px">Videos are only ever scaled down, never up. Lower resolutions make much smaller files.</p>
+          <div id="convert-options" class="hidden">
+            <div class="step"><span class="step-num">3</span><h3>Options</h3><span class="muted small step-note">All optional</span></div>
+            <div class="opt-grid">
+              <label class="field" data-for="video gif">
+                <span class="field-label">Max resolution</span>
+                <select id="convert-resolution"><option value="">Keep original</option></select>
+              </label>
+              <label class="field" data-for="video">
+                <span class="field-label">Quality</span>
+                <select id="convert-quality">
+                  <option value="original" selected>Original (no re-encode)</option>
+                  <option value="high">High (bigger file)</option>
+                  <option value="balanced">Balanced</option>
+                  <option value="small">Small file</option>
+                </select>
+              </label>
+              <label class="field" data-for="video" id="convert-codec-field">
+                <span class="field-label">Video codec</span>
+                <select id="convert-codec"></select>
+              </label>
+              <label class="field" data-for="video gif">
+                <span class="field-label">Frame rate</span>
+                <select id="convert-fps"><option value="">Keep original</option></select>
+              </label>
+              <label class="field" data-for="video gif">
+                <span class="field-label">Rotate</span>
+                <select id="convert-rotate">
+                  <option value="">No rotation</option>
+                  <option value="90">90° clockwise</option>
+                  <option value="180">180°</option>
+                  <option value="270">90° counter-clockwise</option>
+                </select>
+              </label>
+              <label class="field" data-for="video lossy">
+                <span class="field-label">Audio bitrate</span>
+                <select id="convert-audio-bitrate"><option value="">Automatic</option></select>
+              </label>
+              <div class="field span-all" data-for="video gif audio">
+                <span class="field-label">Trim</span>
+                <div class="time-range">
+                  <input type="text" class="input" id="convert-trim-start" placeholder="Start, e.g. 0:05" aria-label="Trim start" />
+                  <span class="muted">to</span>
+                  <input type="text" class="input" id="convert-trim-end" placeholder="End, e.g. 1:20" aria-label="Trim end" />
+                  <label class="check" data-for="video"><input type="checkbox" id="convert-fast-cut" /><span>Fast cut <span class="muted">(no re-encode)</span></span></label>
+                </div>
+                <span class="muted small" data-for="video">Fast cut is near-instant and lossless but cuts at the nearest keyframe. It's only used when no other video changes are picked.</span>
+              </div>
+              <div class="field span-all" data-for="video">
+                <span class="field-label">Compress to a target size</span>
+                <div class="size-target">
+                  <input type="number" class="input" id="convert-target-size" min="1" step="1" placeholder="MB" aria-label="Target size in MB" />
+                  <span class="muted small">MB</span>
+                  <div class="chip-row" id="size-presets">
+                    <button type="button" data-mb="8">8 MB</button>
+                    <button type="button" data-mb="10">10 MB</button>
+                    <button type="button" data-mb="25">25 MB</button>
+                    <button type="button" data-mb="50">50 MB</button>
+                    <button type="button" data-mb="100">100 MB</button>
+                  </div>
+                </div>
+                <span class="muted small">Picks the bitrate needed to fit, for chat apps with upload limits. Overrides Quality.</span>
+              </div>
+              <label class="check" data-for="video"><input type="checkbox" id="convert-mute" /><span>Remove audio</span></label>
+              <label class="check" data-for="video audio"><input type="checkbox" id="convert-normalize" /><span>Normalize loudness</span></label>
+            </div>
+            <p class="muted small privacy-note"><svg><use href="#i-shield"/></svg>Location, device and other metadata are removed from every converted file.</p>
           </div>
 
           <button class="btn btn-primary btn-block" id="convert-btn" disabled>Convert</button>
@@ -239,7 +397,7 @@
               <span class="job-percent" id="progress-percent"></span>
               <button class="btn btn-ghost btn-sm" id="convert-cancel"><svg><use href="#i-x"/></svg>Cancel</button>
             </div>
-            <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+            <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-labelledby="progress-label"><div id="progress-fill" class="progress-fill"></div></div>
           </div>
 
           <div id="convert-error" class="alert alert-error hidden" role="alert"></div>
@@ -247,10 +405,10 @@
           <div id="convert-result" class="success-box hidden">
             <div class="success-icon"><svg><use href="#i-check"/></svg></div>
             <div class="success-text">
-              <strong>Your file is ready</strong>
+              <strong id="convert-result-title">Your file is ready</strong>
               <span class="muted small" id="convert-result-name"></span>
             </div>
-            <a id="convert-download" class="btn btn-primary" download><svg><use href="#i-download"/></svg>Download</a>
+            <a id="convert-download" class="btn btn-primary" download><svg><use href="#i-download"/></svg><span id="convert-download-label">Download</span></a>
           </div>
         </div>
       </section>
@@ -260,15 +418,15 @@
         <header class="page-header">
           <p class="eyebrow">Image converter</p>
           <h1>Convert images &amp; pull GIF frames</h1>
-          <p class="lead">Switch between PNG, JPG, BMP, TIFF, GIF and WebM. Drop in a GIF to browse every frame and save the ones you want.</p>
+          <p class="lead">Switch between PNG, JPG, WebP, AVIF, BMP, TIFF, GIF and WebM, and resize while you're at it. Drop in a GIF to browse every frame and save the ones you want.</p>
         </header>
 
         <div class="card">
           <div id="image-drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="Choose an image">
-            <input type="file" id="image-file-input" accept=".png,.jpg,.jpeg,.bmp,.tif,.tiff,.gif,.webm" hidden />
+            <input type="file" id="image-file-input" accept=".png,.jpg,.jpeg,.bmp,.tif,.tiff,.gif,.webp,.avif,.webm" hidden />
             <div class="drop-icon"><svg><use href="#i-image"/></svg></div>
             <p><strong>Click to choose</strong> or drag &amp; drop an image</p>
-            <p class="muted small">PNG, JPG, BMP, TIFF, GIF, WebM · Up to 500 MB</p>
+            <p class="muted small">PNG, JPG, WebP, AVIF, BMP, TIFF, GIF, WebM · Up to <span id="image-limit-text">500 MB</span></p>
           </div>
 
           <div id="image-fetch-progress" class="job hidden">
@@ -298,6 +456,24 @@
           <div id="image-format-section" class="hidden">
             <div class="section-row"><h3 class="section-title">Convert to</h3></div>
             <div class="format-grid" id="image-format-grid"></div>
+            <div class="opt-grid image-opts">
+              <div class="field">
+                <span class="field-label">Resize to fit (optional)</span>
+                <div class="time-range">
+                  <input type="number" class="input" id="image-max-width" min="1" max="16384" placeholder="Max width" aria-label="Maximum width in pixels" />
+                  <span class="muted">×</span>
+                  <input type="number" class="input" id="image-max-height" min="1" max="16384" placeholder="Max height" aria-label="Maximum height in pixels" />
+                  <span class="muted small">px</span>
+                </div>
+                <span class="muted small">Keeps the aspect ratio. Images are never enlarged.</span>
+              </div>
+              <div class="field hidden" id="image-quality-field">
+                <span class="field-label">Quality <span class="muted" id="image-quality-value">85</span></span>
+                <input type="range" id="image-quality" min="10" max="100" step="1" value="85" aria-label="Quality" />
+                <span class="muted small">Lower means a smaller file.</span>
+              </div>
+            </div>
+            <p class="muted small privacy-note"><svg><use href="#i-shield"/></svg>Location, camera and other metadata are always removed.</p>
             <button class="btn btn-primary btn-block" id="image-convert-btn" disabled>Convert &amp; download</button>
           </div>
 
@@ -341,8 +517,8 @@
       <section class="page" id="page-why" data-title="Why Vidget">
         <header class="page-header hero-header">
           <p class="eyebrow">Why use Vidget</p>
-          <h1 class="gradient-text">Your media. Your machine.<br />No strings attached.</h1>
-          <p class="lead">Most "free" online downloaders and converters pay for themselves with ads, trackers, upsells and your data. Vidget runs on hardware you control, so none of that has to happen.</p>
+          <h1 class="gradient-text">Free, private downloads.<br />No strings attached.</h1>
+          <p class="lead">Most "free" online downloaders and converters pay for themselves with ads, trackers, upsells and your data. Vidget is open-source software that doesn't need to make money from you, so none of that has to happen.</p>
           <div class="btn-row center">
             <a class="btn btn-primary" href="#download"><svg><use href="#i-download"/></svg>Start downloading</a>
             <a class="btn btn-secondary" href="#about">How it works</a>
@@ -353,7 +529,7 @@
           <article class="pillar">
             <div class="pillar-icon"><svg><use href="#i-shield"/></svg></div>
             <h3>Privacy first</h3>
-            <p>Your files are processed on your own server and never uploaded to a third-party service. There's no analytics, no cookies and no fingerprinting. Thumbnails are even loaded through your server, so your browser never talks to the video site.</p>
+            <p>Your files are processed on this server, never handed to a third-party service, and deleted shortly after you download them. There's no analytics, no cookies and no fingerprinting. Thumbnails are even loaded through this server, so your browser never talks to the video site.</p>
           </article>
           <article class="pillar">
             <div class="pillar-icon"><svg><use href="#i-ban"/></svg></div>
@@ -368,12 +544,12 @@
           <article class="pillar">
             <div class="pillar-icon"><svg><use href="#i-download"/></svg></div>
             <h3>Keep real files</h3>
-            <p>Get an actual file you own, not a stream that can vanish. Save to your device, and keep a copy on the server in <code>Saves/</code> if you want.</p>
+            <p>Get an actual file you own, not a stream that can vanish. Save it to your device and keep it for as long as you like.</p>
           </article>
           <article class="pillar">
             <div class="pillar-icon"><svg><use href="#i-bolt"/></svg></div>
             <h3>Fast &amp; full quality</h3>
-            <p>Powered by yt-dlp and FFmpeg, the same open-source tools the professionals use. You get up to 4K video, lossless audio, and no queue behind other people.</p>
+            <p>Powered by yt-dlp and FFmpeg, the same open-source tools the professionals use. You get up to 4K video and lossless audio, with no paid "fast lane".</p>
           </article>
           <article class="pillar">
             <div class="pillar-icon"><svg><use href="#i-code"/></svg></div>
@@ -393,7 +569,7 @@
                 <tr><td>Advertising</td><td class="yes">None</td><td class="no">Banners, pop-ups, fake buttons</td></tr>
                 <tr><td>Account required</td><td class="yes">Never</td><td class="no">Often, for larger files</td></tr>
                 <tr><td>Price</td><td class="yes">Free, forever</td><td class="no">Monthly plan to unlock features</td></tr>
-                <tr><td>Where your files go</td><td class="yes">Your own server</td><td class="no">Someone else's cloud</td></tr>
+                <tr><td>Where your files go</td><td class="yes">This server, deleted after use</td><td class="no">Someone else's cloud</td></tr>
                 <tr><td>Tracking &amp; analytics</td><td class="yes">None</td><td class="no">Ad networks, trackers</td></tr>
                 <tr><td>Watermarks</td><td class="yes">Never</td><td class="no">On free tier</td></tr>
                 <tr><td>Quality limits</td><td class="yes">Best available, up to 4K</td><td class="no">Often capped at 720p</td></tr>
@@ -414,7 +590,7 @@
         <header class="page-header">
           <p class="eyebrow">About</p>
           <h1>About Vidget</h1>
-          <p class="lead">Vidget is a small, self-hosted web app for downloading online video and converting media files. It was built as a private, ad-free and subscription-free alternative to online converter sites.</p>
+          <p class="lead">Vidget is a small, self-hosted web app for downloading online video and converting media files. It was built as a private, ad-free and subscription-free alternative to online converter sites. No account needed.</p>
         </header>
 
         <div class="about-grid">
@@ -422,7 +598,7 @@
             <h2 class="card-title">How it works</h2>
             <ol class="flow">
               <li><span class="flow-dot"><svg><use href="#i-link"/></svg></span><div><strong>You paste a link or drop a file</strong><p class="muted small">Your browser only talks to this Vidget server.</p></div></li>
-              <li><span class="flow-dot"><svg><use href="#i-server"/></svg></span><div><strong>Your server does the work</strong><p class="muted small"><em>yt-dlp</em> fetches the media straight from the source site, and <em>FFmpeg</em> handles merging and converting.</p></div></li>
+              <li><span class="flow-dot"><svg><use href="#i-server"/></svg></span><div><strong>This server does the work</strong><p class="muted small"><em>yt-dlp</em> fetches the media straight from the source site, and <em>FFmpeg</em> handles merging and converting.</p></div></li>
               <li><span class="flow-dot"><svg><use href="#i-download"/></svg></span><div><strong>You get the file</strong><p class="muted small">It downloads straight to your device. Temporary files are cleaned up automatically.</p></div></li>
             </ol>
           </div>
@@ -432,19 +608,18 @@
             <dl class="facts" id="server-facts">
               <div><dt>Version</dt><dd id="fact-version">—</dd></div>
               <div><dt>Download logging</dt><dd id="fact-logs">—</dd></div>
-              <div><dt>Saved files kept</dt><dd id="fact-saves">—</dd></div>
+              <div><dt>Your files are deleted</dt><dd id="fact-saves">—</dd></div>
               <div><dt>Max video upload</dt><dd id="fact-video-limit">2 GB</dd></div>
               <div><dt>Max image upload</dt><dd id="fact-image-limit">500 MB</dd></div>
             </dl>
-            <p class="muted small">The server admin sets these in <code>config.json</code>.</p>
+            <p class="muted small">Set by whoever runs this server. See <a href="#privacy">Privacy &amp; terms</a> for the full list.</p>
           </div>
 
           <div class="card">
             <h2 class="card-title">Where your files go</h2>
-            <ul class="plain-list">
-              <li><strong>Downloads</strong> are saved on the server in <code>Saves/video</code> and <code>Saves/audio</code>, and also sent to your browser.</li>
-              <li><strong>Video conversions</strong>: the uploaded file is deleted as soon as conversion finishes, and the result is removed about 30 minutes later.</li>
-              <li><strong>Image uploads</strong> are kept in <code>Saves/Uploaded</code>. GIF frame previews are removed after 30 minutes.</li>
+            <ul class="plain-list" id="files-policy">
+              <li><strong>Downloads and conversions</strong> are prepared on this server and sent to your browser. The server copy is deleted after <span class="ttl-text">30 minutes</span>.</li>
+              <li><strong>Uploaded files</strong> are deleted as soon as they've been converted, or when they expire.</li>
               <li><strong>Settings &amp; history</strong> live only in this browser's local storage.</li>
             </ul>
           </div>
@@ -475,6 +650,56 @@
         </div>
       </section>
 
+      <!-- ============ Privacy & terms ============ -->
+      <section class="page" id="page-privacy" data-title="Privacy &amp; terms">
+        <header class="page-header">
+          <p class="eyebrow">Privacy &amp; terms</p>
+          <h1>What this server does with your data</h1>
+          <p class="lead">This page is generated from this server's live settings, so it always matches what actually happens.</p>
+        </header>
+
+        <div class="about-grid">
+          <div class="card">
+            <h2 class="card-title">What is stored</h2>
+            <ul class="plain-list" id="privacy-stored"></ul>
+          </div>
+          <div class="card">
+            <h2 class="card-title">What is never collected</h2>
+            <ul class="plain-list">
+              <li>No accounts, sign-ups or email addresses.</li>
+              <li>No cookies, analytics, tracking pixels or ads.</li>
+              <li>No third-party scripts, fonts or CDNs. Everything on this page comes from this server.</li>
+              <li>Your settings and history stay in your browser's local storage and are never uploaded.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h2 class="card-title">Who else is contacted</h2>
+            <ul class="plain-list">
+              <li><strong>The site you link to.</strong> This server fetches the media from it, so that site sees this server's address, not yours.</li>
+              <li><strong>Thumbnails</strong> are also loaded through this server, so your browser never contacts the source site.</li>
+              <li><strong>SponsorBlock</strong> (sponsor.ajay.app) is asked for a video's sponsor segments only when you tick “Cut out sponsor segments”. Only the video's ID is sent.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h2 class="card-title">Limits on this server</h2>
+            <dl class="facts" id="privacy-limits"></dl>
+          </div>
+          <div class="card about-wide">
+            <h2 class="card-title">Acceptable use &amp; copyright</h2>
+            <p>Only download or convert content you have the right to: your own uploads, content with a permissive license, or content where the law in your country allows a personal copy. Don't use this server to infringe copyright, bypass DRM or paywalls, or harass anyone.</p>
+            <p id="privacy-sites" class="muted"></p>
+            <div class="callout" id="privacy-contact-box">
+              <svg><use href="#i-info"/></svg>
+              <p id="privacy-contact"></p>
+            </div>
+          </div>
+          <div class="card about-wide hidden" id="privacy-terms-card">
+            <h2 class="card-title">Terms of use for this server</h2>
+            <div class="terms-text" id="privacy-terms"></div>
+          </div>
+        </div>
+      </section>
+
       <!-- ============ Settings ============ -->
       <section class="page" id="page-settings" data-title="Settings">
         <header class="page-header">
@@ -482,6 +707,25 @@
           <h1>Settings</h1>
           <p class="lead">Saved in this browser only.</p>
         </header>
+
+        <div class="card settings-card">
+          <h2 class="card-title">Language &amp; notifications</h2>
+          <div class="setting">
+            <div class="setting-text"><strong>Language</strong><span class="muted small">Auto uses your browser's language</span></div>
+            <select id="language-select">
+              <option value="auto">Auto</option>
+              <option value="en">English</option>
+              <option value="es">Español</option>
+              <option value="fr">Français</option>
+              <option value="de">Deutsch</option>
+              <option value="pt">Português</option>
+            </select>
+          </div>
+          <div class="setting">
+            <div class="setting-text"><strong>Notify me when a job finishes</strong><span class="muted small">A browser notification when a download or conversion is ready while you're in another tab</span></div>
+            <label class="switch"><input type="checkbox" id="notifications-toggle" /><span class="switch-track"><span class="switch-thumb"></span></span></label>
+          </div>
+        </div>
 
         <div class="card settings-card">
           <h2 class="card-title">Appearance</h2>
@@ -577,6 +821,6 @@
 
   <div class="toasts" id="toasts" aria-live="polite"></div>
 
-  <script src="/js/app.js"></script>
+  <script src="/js/i18n.js"></script>
 </body>
 </html>

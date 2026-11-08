@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { getConfig, isWithinRetention } = require('./config');
 
-const SAVES_DIR = path.join(__dirname, '..', 'Saves');
+const { SAVES_DIR } = require('./paths');
 const SAVES_SUBDIRS = ['video', 'audio', 'Uploaded'];
 
 async function pruneSaves() {

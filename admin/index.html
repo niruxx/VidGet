@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="referrer" content="no-referrer" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Admin · Vidget</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/admin/assets/admin.css" />
+</head>
+<body class="admin">
+  <div class="bg-glow" aria-hidden="true"><div class="blob blob-1"></div><div class="blob blob-2"></div></div>
+
+  <!-- Loading -->
+  <main class="auth-wrap" id="view-loading"><p class="muted">Loading…</p></main>
+
+  <!-- First-run setup -->
+  <main class="auth-wrap" id="view-setup" hidden>
+    <form class="card auth-card" id="setup-form" autocomplete="off">
+      <span class="brand-mark big">V</span>
+      <p class="eyebrow">First run</p>
+      <h1>Set up your Vidget instance</h1>
+      <p class="muted">Create the admin account. Until you do, the public site stays closed. Afterwards anyone can use Vidget as a guest, and only this account can sign in here at <code>/admin</code>.</p>
+
+      <label class="field">
+        <span class="field-label">Setup token</span>
+        <input type="text" id="setup-token" required spellcheck="false" autocomplete="one-time-code" placeholder="Printed in the server console" />
+        <span class="hint">Look for “Setup token” in the terminal or service log where Vidget is running (for example <code>journalctl -u vidget</code>). It stops anyone else from claiming this instance first.</span>
+      </label>
+      <label class="field">
+        <span class="field-label">Admin username</span>
+        <input type="text" id="setup-username" required minlength="3" maxlength="64" autocomplete="username" spellcheck="false" />
+      </label>
+      <label class="field">
+        <span class="field-label">Password</span>
+        <input type="password" id="setup-password" required autocomplete="new-password" />
+        <span class="hint" id="setup-password-hint">At least 10 characters.</span>
+      </label>
+      <label class="field">
+        <span class="field-label">Confirm password</span>
+        <input type="password" id="setup-confirm" required autocomplete="new-password" />
+      </label>
+      <p class="form-error" id="setup-error" role="alert"></p>
+      <button class="btn btn-primary btn-block" type="submit">Create admin account &amp; open site</button>
+    </form>
+  </main>
+
+  <!-- Login -->
+  <main class="auth-wrap" id="view-login" hidden>
+    <form class="card auth-card" id="login-form">
+      <span class="brand-mark big">V</span>
+      <p class="eyebrow">Admin</p>
+      <h1>Sign in</h1>
+      <label class="field">
+        <span class="field-label">Username</span>
+        <input type="text" id="login-username" required autocomplete="username" spellcheck="false" />
+      </label>
+      <label class="field">
+        <span class="field-label">Password</span>
+        <input type="password" id="login-password" required autocomplete="current-password" />
+      </label>
+      <p class="form-error" id="login-error" role="alert"></p>
+      <button class="btn btn-primary btn-block" type="submit">Sign in</button>
+      <p class="muted small center"><a href="/">← Back to the site</a></p>
+    </form>
+  </main>
+
+  <!-- Dashboard -->
+  <div class="admin-shell" id="view-dashboard" hidden>
+    <header class="admin-top">
+      <div class="admin-brand"><span class="brand-mark">V</span><div><strong id="dash-site-name">Vidget</strong><span class="muted small">Admin portal</span></div></div>
+      <div class="admin-top-actions">
+        <a class="btn btn-ghost btn-sm" href="/" target="_blank" rel="noopener">View site</a>
+        <span class="muted small" id="dash-user"></span>
+        <button class="btn btn-secondary btn-sm" id="logout-btn" type="button">Sign out</button>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <section class="card">
+        <div class="card-head">
+          <h2 class="card-title">Status</h2>
+          <button class="btn btn-ghost btn-sm" type="button" id="refresh-stats">Refresh</button>
+        </div>
+        <div class="stat-grid">
+          <div class="stat"><span class="stat-label">Version</span><span class="stat-value" id="stat-version">—</span></div>
+          <div class="stat"><span class="stat-label">Uptime</span><span class="stat-value" id="stat-uptime">—</span></div>
+          <div class="stat"><span class="stat-label">Jobs running / queued</span><span class="stat-value" id="stat-jobs">—</span></div>
+          <div class="stat"><span class="stat-label">Listening on</span><span class="stat-value" id="stat-port">—</span></div>
+        </div>
+        <p class="muted small" id="stat-runtime"></p>
+      </section>
+
+      <form id="settings-form" class="settings-stack">
+        <section class="card">
+          <h2 class="card-title">Branding</h2>
+          <div class="grid-2">
+            <label class="field"><span class="field-label">Site name</span><input type="text" id="s-siteName" maxlength="40" required /></label>
+            <label class="field"><span class="field-label">Tagline</span><input type="text" id="s-tagline" maxlength="60" /></label>
+          </div>
+          <label class="field">
+            <span class="field-label">Announcement banner</span>
+            <textarea id="s-announcement" maxlength="300" rows="2" placeholder="e.g. YouTube is rate-limiting this server today, so downloads may be slow."></textarea>
+            <span class="hint">Shown at the top of every page. Leave empty to hide it.</span>
+          </label>
+          <label class="field">
+            <span class="field-label">Contact for copyright &amp; abuse reports</span>
+            <input type="text" id="s-contact" maxlength="300" placeholder="e.g. abuse@example.com or https://example.com/contact" />
+            <span class="hint">Shown on the public Privacy &amp; terms page. Strongly recommended for public instances.</span>
+          </label>
+          <label class="field">
+            <span class="field-label">Terms of use <span class="muted">(optional)</span></span>
+            <textarea id="s-terms" maxlength="5000" rows="6" placeholder="e.g. This service is provided as is, without warranty. Don't use it for anything illegal. We may block abusive visitors."></textarea>
+            <span class="hint">Plain text; line breaks are kept. Shown on the public Privacy &amp; terms page under the standard acceptable-use notice. <span id="terms-count"></span></span>
+          </label>
+        </section>
+
+        <section class="card">
+          <h2 class="card-title">Tools</h2>
+          <p class="muted small card-sub">Turned-off tools are hidden from visitors and refused by the server.</p>
+          <div class="setting">
+            <div class="setting-text"><strong>Downloader</strong><span class="muted small">Video and audio from links</span></div>
+            <label class="switch"><input type="checkbox" id="s-feature-downloader" /><span class="switch-track"><span class="switch-thumb"></span></span></label>
+          </div>
+          <div class="setting">
+            <div class="setting-text"><strong>Video converter</strong><span class="muted small">Uploads of video and audio files</span></div>
+            <label class="switch"><input type="checkbox" id="s-feature-videoConverter" /><span class="switch-track"><span class="switch-thumb"></span></span></label>
+          </div>
+          <div class="setting">
+            <div class="setting-text"><strong>Image converter</strong><span class="muted small">Image uploads and GIF frames</span></div>
+            <label class="switch"><input type="checkbox" id="s-feature-imageConverter" /><span class="switch-track"><span class="switch-thumb"></span></span></label>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2 class="card-title">Limits</h2>
+          <div class="grid-2">
+            <label class="field">
+              <span class="field-label">Maximum download quality</span>
+              <select id="s-maxQuality"></select>
+            </label>
+            <label class="field">
+              <span class="field-label">Maximum media length (minutes)</span>
+              <input type="number" id="s-maxDurationMinutes" min="0" max="1440" step="1" />
+              <span class="hint">0 = no limit.</span>
+            </label>
+            <label class="field">
+              <span class="field-label">Max video upload (MB)</span>
+              <input type="number" id="s-videoUploadMB" min="1" max="102400" step="1" required />
+            </label>
+            <label class="field">
+              <span class="field-label">Max image upload (MB)</span>
+              <input type="number" id="s-imageUploadMB" min="1" max="10240" step="1" required />
+            </label>
+            <label class="field">
+              <span class="field-label">Max playlist items</span>
+              <input type="number" id="s-maxPlaylistItems" min="0" max="1000" step="1" required />
+              <span class="hint">0 turns playlist support off.</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2 class="card-title">Abuse protection</h2>
+          <p class="muted small card-sub">Counters are kept in memory only and never written to disk.</p>
+          <div class="grid-2">
+            <label class="field">
+              <span class="field-label">Jobs running at once (whole server)</span>
+              <input type="number" id="s-maxConcurrentJobs" min="1" max="64" step="1" required />
+              <span class="hint">Extra jobs wait in a queue. Roughly one per CPU core is a good start.</span>
+            </label>
+            <label class="field">
+              <span class="field-label">Jobs per visitor at once</span>
+              <input type="number" id="s-maxJobsPerIp" min="1" max="100" step="1" required />
+              <span class="hint">Running plus queued jobs from one IP address.</span>
+            </label>
+            <label class="field">
+              <span class="field-label">Requests per visitor per minute</span>
+              <input type="number" id="s-requestsPerMinute" min="0" max="10000" step="1" required />
+              <span class="hint">Link lookups, downloads, uploads and conversions. 0 = no limit.</span>
+            </label>
+            <label class="field">
+              <span class="field-label">Stop jobs running longer than (minutes)</span>
+              <input type="number" id="s-maxJobMinutes" min="0" max="1440" step="1" required />
+              <span class="hint">Frees the worker slot if a download or conversion gets stuck. 0 = no limit.</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2 class="card-title">Supported sites</h2>
+          <div class="grid-2">
+            <label class="field">
+              <span class="field-label">Mode</span>
+              <select id="s-sitesMode">
+                <option value="all">Allow every site yt-dlp supports</option>
+                <option value="allow">Only allow the sites listed</option>
+                <option value="block">Block the sites listed</option>
+              </select>
+            </label>
+            <label class="field" id="sites-list-field">
+              <span class="field-label">Sites</span>
+              <textarea id="s-sitesList" rows="4" placeholder="youtube.com&#10;vimeo.com&#10;soundcloud.com"></textarea>
+              <span class="hint">One domain per line. Subdomains are included (youtube.com covers m.youtube.com).</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2 class="card-title">Privacy &amp; retention</h2>
+          <div class="setting">
+            <div class="setting-text"><strong>Keep a copy of every download and upload</strong><span class="muted small">Stores copies in <code>Saves/</code>. Leave off for a public instance; visitors' files are then deleted once their link expires.</span></div>
+            <label class="switch"><input type="checkbox" id="s-keepCopies" /><span class="switch-track"><span class="switch-thumb"></span></span></label>
+          </div>
+          <label class="field field-narrow" style="margin-top:14px">
+            <span class="field-label">Download links expire after (minutes)</span>
+            <input type="number" id="s-resultTtlMinutes" min="5" max="1440" step="1" required />
+            <span class="hint">Finished files are deleted from the server after this.</span>
+          </label>
+          <div class="grid-2">
+            <div class="field">
+              <span class="field-label">Download log</span>
+              <div class="retention" data-key="logRetentionDays">
+                <select><option value="off">Off (recommended)</option><option value="days">Keep for…</option><option value="forever">Keep forever</option></select>
+                <input type="number" min="1" max="3650" step="1" aria-label="Days to keep the download log" /><span class="muted small">days</span>
+              </div>
+              <span class="hint">Logs record IP, link and title of each download.</span>
+            </div>
+            <div class="field">
+              <span class="field-label">Copies in Saves/</span>
+              <div class="retention" data-key="savesRetentionDays">
+                <select><option value="off">Delete within an hour</option><option value="days">Keep for…</option><option value="forever">Keep forever</option></select>
+                <input type="number" min="1" max="3650" step="1" aria-label="Days to keep saved files" /><span class="muted small">days</span>
+              </div>
+              <span class="hint">Only matters when keeping copies is on.</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2 class="card-title">Media tools</h2>
+          <div class="setting">
+            <div class="setting-text">
+              <strong>Keep yt-dlp up to date automatically</strong>
+              <span class="muted small">Checks once a day, only between downloads. Sites change often, and an outdated yt-dlp is the most common reason downloads fail.</span>
+              <span class="small ytdlp-status" id="ytdlp-status"></span>
+            </div>
+            <div class="setting-actions">
+              <button type="button" class="btn btn-secondary btn-sm" id="ytdlp-update-btn">Update now</button>
+              <label class="switch"><input type="checkbox" id="s-ytdlpAutoUpdate" /><span class="switch-track"><span class="switch-thumb"></span></span></label>
+            </div>
+          </div>
+          <div class="setting">
+            <div class="setting-text">
+              <strong>Hardware video encoding</strong>
+              <span class="muted small">Use the GPU (NVIDIA NVENC, Intel Quick Sync, AMD AMF, Apple VideoToolbox or VAAPI) for H.264/H.265 conversions. Much faster, slightly larger files. Falls back to the CPU if the GPU encoder fails.</span>
+              <span class="small" id="hw-status"></span>
+            </div>
+            <label class="switch"><input type="checkbox" id="s-hardwareEncoding" /><span class="switch-track"><span class="switch-thumb"></span></span></label>
+          </div>
+          <p class="muted small" id="ffmpeg-status"></p>
+        </section>
+
+        <section class="card">
+          <h2 class="card-title">Server</h2>
+          <div class="grid-2">
+            <label class="field">
+              <span class="field-label">Port</span>
+              <input type="number" id="s-port" min="1" max="65535" step="1" required />
+              <span class="hint">Needs a restart. The <code>PORT</code> environment variable overrides this.</span>
+            </label>
+            <label class="field">
+              <span class="field-label">Listen address</span>
+              <input type="text" id="s-host" maxlength="253" placeholder="All interfaces" spellcheck="false" />
+              <span class="hint">Use <code>127.0.0.1</code> behind a reverse proxy so Vidget can't be reached directly. Needs a restart; <code>HOST</code> overrides this.</span>
+            </label>
+          </div>
+          <div class="setting">
+            <div class="setting-text"><strong>Behind a reverse proxy</strong><span class="muted small">Trust the <code>X-Forwarded-For</code> header from the first proxy (Caddy, nginx) so limits see real visitor IPs. Only turn on if Vidget is not reachable directly.</span></div>
+            <label class="switch"><input type="checkbox" id="s-trustProxy" /><span class="switch-track"><span class="switch-thumb"></span></span></label>
+          </div>
+        </section>
+
+        <div class="save-bar" id="save-bar">
+          <span class="muted small" id="save-status">No unsaved changes</span>
+          <button class="btn btn-secondary btn-sm" type="button" id="discard-btn" disabled>Discard</button>
+          <button class="btn btn-primary btn-sm" type="submit" id="save-btn" disabled>Save changes</button>
+        </div>
+      </form>
+
+      <section class="card">
+        <h2 class="card-title">Storage</h2>
+        <div class="storage-list" id="storage-list"></div>
+        <div class="btn-row">
+          <button class="btn btn-danger btn-sm" type="button" data-purge="saves">Delete all saved files</button>
+          <button class="btn btn-danger btn-sm" type="button" data-purge="logs">Delete download log</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Admin account</h2>
+        <form id="account-form" class="grid-2" autocomplete="off">
+          <label class="field"><span class="field-label">Username</span><input type="text" id="a-username" minlength="3" maxlength="64" autocomplete="username" spellcheck="false" /></label>
+          <label class="field"><span class="field-label">New password <span class="muted">(optional)</span></span><input type="password" id="a-new" autocomplete="new-password" /></label>
+          <label class="field"><span class="field-label">Confirm new password</span><input type="password" id="a-confirm" autocomplete="new-password" /></label>
+          <label class="field"><span class="field-label">Current password</span><input type="password" id="a-current" required autocomplete="current-password" /></label>
+          <p class="form-error span-2" id="account-error" role="alert"></p>
+          <div class="span-2"><button class="btn btn-primary btn-sm" type="submit">Update account</button> <span class="muted small">Signs out every other session.</span></div>
+        </form>
+      </section>
+
+      <p class="muted small center">Forgot the password? Stop Vidget, delete <code>data/admin.json</code>, and start it again to run setup with a new token.</p>
+    </main>
+  </div>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <script src="/admin/assets/admin.js"></script>
+</body>
+</html>

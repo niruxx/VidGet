@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { getConfig, isWithinRetention } = require('./config');
 
-const LOG_DIR = path.join(__dirname, '..', 'logs');
+const { LOGS_DIR: LOG_DIR } = require('./paths');
 const LOG_PATH = path.join(LOG_DIR, 'connections.log');
 fs.mkdirSync(LOG_DIR, { recursive: true });
 

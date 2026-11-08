@@ -1,3 +1,5 @@
+const { queuePosition } = require('./jobs');
+
 function streamJobProgress(getJob) {
   return (req, res) => {
     const { jobId } = req.params;
@@ -18,7 +20,10 @@ function streamJobProgress(getJob) {
         res.end();
         return;
       }
-      res.write(`data: ${JSON.stringify({ status: job.status, percent: job.percent, stage: job.stage, error: job.error })}\n\n`);
+      const payload = { status: job.status, percent: job.percent, stage: job.stage, error: job.error };
+      if (job.status === 'queued') payload.position = queuePosition(jobId);
+      if (job.status === 'done') payload.name = job.downloadName;
+      res.write(`data: ${JSON.stringify(payload)}\n\n`);
       if (job.status === 'done' || job.status === 'error') {
         clearInterval(interval);
         res.end();
