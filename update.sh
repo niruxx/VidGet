@@ -216,7 +216,7 @@ main() {
       log "Already up to date ($(git rev-parse --short HEAD))."
     else
       log "Update available: $(git rev-list --count "${old_head}..${remote_head}") new commit(s)."
-      git log --oneline --no-decorate "${old_head}..${remote_head}"
+      git --no-pager log --oneline --no-decorate "${old_head}..${remote_head}"
     fi
     return
   fi
@@ -272,7 +272,7 @@ main() {
   restore_config
 
   echo
-  git log --oneline --no-decorate "${old_head}..HEAD"
+  git --no-pager log --oneline --no-decorate "${old_head}..HEAD"
   echo
 
   finish_steps "$old_head" 0
