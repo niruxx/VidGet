@@ -2258,9 +2258,10 @@ function renderPrivacyPage(meta) {
   const stored = $('privacy-stored');
   stored.innerHTML = '';
   stored.appendChild(meta.logRetentionDays === 0
-    ? listItem('No download log.', 'Nothing records what you download.')
+    ? listItem('No download log.', 'Successful downloads are not logged.')
     : listItem('A download log', t('records your IP address and the link and title of each download. It is kept {time}.', { time: meta.logRetentionDays === '*' ? t('indefinitely') : t('for {time}', { time: describeRetention(meta.logRetentionDays, {}) }) })));
   stored.appendChild(listItem('Your files', t("(downloads, conversions and uploads) are only kept on the server until you've had time to save them, then deleted after {time}.", { time: ttl })));
+  stored.appendChild(listItem('Downloader diagnostics', 'Up to 100 recent errors and source links are kept for 7 days for troubleshooting. Visitor IP addresses are not recorded; URL queries and authentication headers are removed.'));
   if (meta.keepCopies) {
     stored.appendChild(listItem('Copies:', t('the owner of this server keeps a copy of downloads and uploaded images ({retention}).', { retention: describeRetention(meta.savesRetentionDays, { never: t('removed within an hour'), forever: t('kept indefinitely') }) })));
   }

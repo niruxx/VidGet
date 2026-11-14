@@ -7,6 +7,7 @@ const { countActiveJobs, countQueuedJobs } = require('../utils/jobs');
 const ytdlpUpdater = require('../utils/ytdlpUpdater');
 const ffmpegCaps = require('../utils/ffmpegCaps');
 const { LOG_PATH, pruneLogs } = require('../utils/connectionLog');
+const { getDiagnostics, clearDiagnostics, DIAGNOSTIC_PATH } = require('../utils/diagnosticLog');
 const { pruneSaves } = require('../utils/savesCleanup');
 
 const { ADMIN_UI_DIR, SAVES_DIR, TMP_DIR } = require('../utils/paths');
@@ -115,6 +116,15 @@ api.post('/logout', (req, res) => {
 /* ---------- authenticated endpoints ---------- */
 api.use(requireAuth);
 
+api.get('/diagnostics', wrap(async (req, res) => {
+  res.json({ entries: (await getDiagnostics()).reverse() });
+}));
+
+api.post('/diagnostics/clear', wrap(async (req, res) => {
+  await clearDiagnostics();
+  res.json({ ok: true });
+}));
+
 api.get('/settings', (req, res) => {
   res.json({ settings: getConfig(), qualityCaps: QUALITY_CAPS });
 });
@@ -199,6 +209,8 @@ api.get('/stats', wrap(async (req, res) => {
   storage.temp = await dirStats(TMP_DIR);
   const logStat = await fs.promises.stat(LOG_PATH).catch(() => null);
   storage.logs = { files: logStat ? 1 : 0, bytes: logStat ? logStat.size : 0 };
+  const diagnosticStat = await fs.promises.stat(DIAGNOSTIC_PATH).catch(() => null);
+  if (diagnosticStat) { storage.logs.files++; storage.logs.bytes += diagnosticStat.size; }
   res.json({
     version,
     node: process.version,

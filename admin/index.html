@@ -289,6 +289,20 @@
         </div>
       </form>
 
+      <section class="card" aria-labelledby="diagnostics-title">
+        <div class="card-head">
+          <h2 class="card-title" id="diagnostics-title">Downloader diagnostics</h2>
+          <button class="btn btn-ghost btn-sm" type="button" id="refresh-diagnostics">Refresh</button>
+        </div>
+        <p class="muted small">Recent errors from fetching details, downloads and subtitles. Keeps up to 100 errors for 7 days in <code>logs/diagnostics.json</code>, separately from the download log. No visitor IP addresses are recorded; URL queries and authentication headers are removed. Earlier console-only errors cannot be recovered.</p>
+        <p class="muted small" id="diagnostics-status" role="status">Loading diagnostics...</p>
+        <div id="diagnostics-list" class="diagnostics-list"></div>
+        <div class="btn-row">
+          <button class="btn btn-secondary btn-sm" type="button" id="copy-diagnostics">Copy diagnostics</button>
+          <button class="btn btn-danger btn-sm" type="button" id="clear-diagnostics">Clear diagnostics</button>
+        </div>
+      </section>
+
       <section class="card">
         <h2 class="card-title">Storage</h2>
         <div class="storage-list" id="storage-list"></div>

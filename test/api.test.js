@@ -115,6 +115,28 @@ test('stats include ffmpeg capabilities and the yt-dlp status', async () => {
   assert.equal(typeof s.data.ytdlp.autoUpdate, 'boolean');
 });
 
+test('diagnostics are admin-only, newest first, and can be cleared', async () => {
+  const visitor = client(server.base);
+  assert.equal((await visitor.get('/admin/api/diagnostics')).status, 401);
+  assert.equal((await visitor.post('/admin/api/diagnostics/clear', {})).status, 401);
+  const file = path.join(server.dir, 'logs', 'diagnostics.json');
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const first = { timestamp: new Date(Date.now() - 1000).toISOString(), stage: 'info', url: 'https://www.threads.com/t/ABC', message: 'Unable to extract post' };
+  const second = { ...first, timestamp: new Date().toISOString(), stage: 'download', message: '<script>alert(1)</script>' };
+  fs.writeFileSync(file, JSON.stringify([first, second]));
+  const result = await admin.get('/admin/api/diagnostics');
+  assert.equal(result.status, 200);
+  assert.deepEqual(result.data.entries, [second, first]);
+  assert.equal(result.headers.get('cache-control'), 'no-store');
+  assert.equal((await admin.get('/admin/api/stats')).data.storage.logs.files, 1);
+  const cross = await admin.post('/admin/api/diagnostics/clear', {}, { Origin: 'https://evil.example' });
+  assert.equal(cross.status, 403);
+  assert.equal(fs.existsSync(file), true);
+  assert.equal((await admin.post('/admin/api/diagnostics/clear', {})).status, 200);
+  assert.deepEqual((await admin.get('/admin/api/diagnostics')).data.entries, []);
+  assert.equal(fs.existsSync(file), false);
+});
+
 test('downloader rejects private addresses and blocked sites without calling yt-dlp', async () => {
   const visitor = client(server.base);
   let r = await visitor.get(`/api/youtube/info?url=${encodeURIComponent('http://192.168.1.1/video')}`);

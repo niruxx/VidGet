@@ -81,6 +81,10 @@ body.admin { min-height: 100vh; }
 .storage-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
 .storage-row:last-child { border-bottom: none; }
 .storage-row code { margin-right: 8px; }
+.diagnostics-list { max-height: 480px; overflow: auto; margin-bottom: 12px; }
+.diagnostic-entry { border-top: 1px solid var(--border); padding: 12px 0; }
+.diagnostic-entry summary { cursor: pointer; overflow-wrap: anywhere; }
+.diagnostic-entry pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; padding: 12px; background: var(--surface-2); border-radius: var(--radius-sm); }
 
 .save-bar {
   position: sticky;

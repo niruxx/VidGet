@@ -10,6 +10,7 @@ const { FFMPEG_PATH: ffmpegPath } = require('../utils/paths');
 const { createJob, getJob, updateJob, runWhenReady, checkJobAllowance } = require('../utils/jobs');
 const { streamJobProgress } = require('../utils/sse');
 const { logDownload } = require('../utils/connectionLog');
+const { logDiagnostic } = require('../utils/diagnosticLog');
 const { killTree } = require('../utils/killTree');
 const { getConfig, isSiteAllowed } = require('../utils/config');
 const ytdlpUpdater = require('../utils/ytdlpUpdater');
@@ -204,6 +205,7 @@ router.get('/info', async (req, res) => {
     // Keep extractor diagnostics in the server console; the browser receives a
     // readable message rather than yt-dlp's traceback and implementation details.
     console.error('yt-dlp metadata extraction failed:', String(err?.stderr || err?.message || err).slice(0, 4000));
+    await logDiagnostic({ stage: 'info', url, error: err });
     return res.status(502).json({ error: explainYtdlpError(err, 'Could not fetch details for this link. The site may not be supported, or the content may be private, age-restricted, or unavailable.') });
   }
 
@@ -447,6 +449,7 @@ async function runDownload(jobId, o) {
     await subprocess;
   } catch (err) {
     if (getJob(jobId)?.cancelled) return removeJobFiles(jobId);
+    await logDiagnostic({ stage: 'download', url: o.url, error: err });
     updateJob(jobId, { status: 'error', error: explainYtdlpError(err, 'Download failed. The link may be unsupported, private, or restricted.') });
     return removeJobFiles(jobId);
   }
@@ -525,8 +528,9 @@ router.post('/subtitles', (req, res) => {
     updateJob(jobId, { stage: 'subtitles', percent: 50 });
     try {
       await runYtdlp(jobId, url, flags, () => {});
-    } catch {
+    } catch (err) {
       if (getJob(jobId)?.cancelled) return removeJobFiles(jobId);
+      await logDiagnostic({ stage: 'subtitles', url, error: err });
       updateJob(jobId, { status: 'error', error: 'Could not download subtitles.' });
       return removeJobFiles(jobId);
     }

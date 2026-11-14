@@ -492,4 +492,7 @@ I18N.register('pt', Object.fromEntries([
   [`This tool is turned off on this instance.`, `Esta ferramenta está desativada nesta instância.`],
   [`Conversion failed.`, `A conversão falhou.`],
   [`Cancelled.`, `Cancelado.`],
+  [`Successful downloads are not logged.`, `Os downloads conclu?dos n?o s?o registrados.`],
+  [`Downloader diagnostics`, `Diagn?stico do downloader`],
+  [`Up to 100 recent errors and source links are kept for 7 days for troubleshooting. Visitor IP addresses are not recorded; URL queries and authentication headers are removed.`, `At? 100 erros recentes e links de origem s?o mantidos por 7 dias para resolver problemas. Os endere?os IP dos visitantes n?o s?o registrados; os par?metros das URLs e os cabe?alhos de autentica??o s?o removidos.`],
 ]));

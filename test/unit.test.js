@@ -205,6 +205,31 @@ test('social video qualities remain selectable without codec metadata', () => {
 });
 
 /* ---------- Translations ---------- */
+test('diagnostics persist bounded, redacted errors independently of download history', async () => {
+  const diagnostics = require('../utils/diagnosticLog');
+  config.saveConfig({ logRetentionDays: 0 });
+  await diagnostics.clearDiagnostics();
+  await Promise.all(Array.from({ length: 105 }, (_, index) => diagnostics.logDiagnostic({
+    stage: 'info', url: `https://user:password@example.com/post/${index}?token=secret#fragment`,
+    error: { stderr: 'ERROR https://example.com/post?token=secret\nCookie: session=secret\nAuthorization: Bearer secret\n<script>alert(1)</script>' },
+  })));
+  const entries = await diagnostics.getDiagnostics();
+  assert.equal(entries.length, 100);
+  assert.equal(entries[0].url, 'https://example.com/post/5');
+  const stored = fs.readFileSync(diagnostics.DIAGNOSTIC_PATH, 'utf8');
+  assert.ok(!stored.includes('secret'));
+  assert.ok(!stored.includes('password'));
+  assert.ok(!stored.includes('fragment'));
+  assert.ok(stored.includes('ERROR'));
+  const stale = { timestamp: new Date(Date.now() - 8 * 86400000).toISOString(), message: 'expired' };
+  fs.writeFileSync(diagnostics.DIAGNOSTIC_PATH, JSON.stringify([stale, entries[0]]));
+  await diagnostics.pruneDiagnostics();
+  assert.equal(JSON.parse(fs.readFileSync(diagnostics.DIAGNOSTIC_PATH)).length, 1);
+  await diagnostics.clearDiagnostics();
+  assert.deepEqual(await diagnostics.getDiagnostics(), []);
+  assert.equal(fs.existsSync(diagnostics.DIAGNOSTIC_PATH), false);
+});
+
 function loadDictionary(code) {
   let entries = null;
   const file = path.join(__dirname, '..', 'public', 'js', 'i18n', `${code}.js`);

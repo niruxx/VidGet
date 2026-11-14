@@ -54,6 +54,7 @@ After setup, the site is open to anyone as a guest, with no accounts. Only the a
 - set how long download links stay valid, whether to keep copies in `Saves/`, and how long the download log and copies are kept
 - turn on reverse-proxy mode (`trust proxy`) so limits see real visitor IPs behind Caddy or nginx
 - set the port and listen address, see status and disk usage, delete saved files or the log, and change the admin username and password
+- inspect, copy or clear downloader diagnostics directly in the portal. Metadata, download and subtitle errors are stored in `logs/diagnostics.json` (up to 100 entries for 7 days), even when the optional download log is off. Diagnostics omit visitor IP addresses and remove URL queries and authentication headers. Errors from before this feature was installed cannot be recovered.
 
 **Defaults for a public instance:**
 - **Files:** downloads, conversions and uploads are deleted from the server 30 minutes after they're ready. Nothing is copied into `Saves/` unless you turn that on.

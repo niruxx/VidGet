@@ -20,6 +20,7 @@ const adminRouter = require('./routes/admin');
 const adminAuth = require('./utils/adminAuth');
 const { getConfig } = require('./utils/config');
 const { pruneLogs } = require('./utils/connectionLog');
+const { pruneDiagnostics } = require('./utils/diagnosticLog');
 const { pruneSaves } = require('./utils/savesCleanup');
 const { sweepTemp } = require('./utils/tempCleanup');
 const { rateLimit } = require('./utils/rateLimit');
@@ -119,6 +120,7 @@ app.use('/api/image', requireFeature('imageConverter'), imageRouter);
 const PRUNE_INTERVAL_MS = 60 * 60 * 1000;
 function runPruneSweep() {
   pruneLogs().catch(() => {});
+  pruneDiagnostics().catch(() => {});
   pruneSaves().catch(() => {});
   sweepTemp().catch(() => {});
 }
@@ -126,6 +128,7 @@ sweepTemp({ startup: true })
   .then((n) => { if (n) console.log(`Removed ${n} leftover temp file${n === 1 ? '' : 's'} from a previous run.`); })
   .catch(() => {});
 pruneLogs().catch(() => {});
+pruneDiagnostics().catch(() => {});
 pruneSaves().catch(() => {});
 setInterval(runPruneSweep, PRUNE_INTERVAL_MS).unref();
 

@@ -118,7 +118,7 @@ const STORAGE_LABELS = {
   audio: ['Saves/audio', 'Downloaded audio'],
   Uploaded: ['Saves/Uploaded', 'Uploaded images'],
   temp: ['tmp/', 'Work files and results waiting to be downloaded'],
-  logs: ['logs/', 'Download log'],
+  logs: ['logs/', 'Download log and diagnostics'],
 };
 
 async function loadStats() {
@@ -198,6 +198,46 @@ $('ytdlp-update-btn').addEventListener('click', async () => {
 });
 
 $('refresh-stats').addEventListener('click', () => loadStats().catch((e) => toast(e.message, 'error')));
+
+let diagnosticText = '';
+async function loadDiagnostics() {
+  const { entries } = await api('/diagnostics');
+  const list = $('diagnostics-list');
+  list.replaceChildren();
+  diagnosticText = entries.map((entry) => `${entry.timestamp} [${entry.stage}] ${entry.url}\n${entry.message}`).join('\n\n');
+  for (const entry of entries) {
+    const details = document.createElement('details');
+    details.className = 'diagnostic-entry';
+    const summary = document.createElement('summary');
+    summary.textContent = `${new Date(entry.timestamp).toLocaleString()} [${entry.stage}] ${entry.url}`;
+    const message = document.createElement('pre');
+    message.textContent = entry.message;
+    details.append(summary, message);
+    list.appendChild(details);
+  }
+  if (list.firstChild) list.firstChild.open = true;
+  $('diagnostics-status').textContent = entries.length ? `${entries.length} recent error${entries.length === 1 ? '' : 's'}. Newest first.` : 'No recent downloader errors. Reproduce the problem, then refresh here.';
+  $('copy-diagnostics').disabled = !entries.length;
+  $('clear-diagnostics').disabled = !entries.length;
+}
+
+$('refresh-diagnostics').addEventListener('click', async () => {
+  const button = $('refresh-diagnostics');
+  button.disabled = true;
+  try { await loadDiagnostics(); } catch (e) { $('diagnostics-status').textContent = e.message; }
+  finally { button.disabled = false; }
+});
+$('copy-diagnostics').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(diagnosticText); toast('Diagnostics copied.', 'success'); }
+  catch { toast('Could not copy. Select and copy the error text instead.', 'error'); }
+});
+$('clear-diagnostics').addEventListener('click', async () => {
+  try {
+    await api('/diagnostics/clear', { method: 'POST', body: {} });
+    await loadDiagnostics();
+    await loadStats();
+  } catch (e) { toast(e.message, 'error'); }
+});
 
 document.querySelectorAll('[data-purge]').forEach((btn) => {
   btn.addEventListener('click', async () => {
@@ -391,6 +431,7 @@ async function openDashboard() {
   $('dash-user').textContent = state.username ? `Signed in as ${state.username}` : '';
   showView('dashboard');
   loadStats().catch(() => {});
+  loadDiagnostics().catch((e) => { $('diagnostics-status').textContent = e.message; });
 }
 
 (async function boot() {
