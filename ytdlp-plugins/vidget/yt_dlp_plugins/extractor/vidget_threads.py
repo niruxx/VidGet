@@ -17,7 +17,7 @@ class VidgetThreadsIE(InfoExtractor):
             item = pending.pop()
             if isinstance(item, dict):
                 if item.get('code') == shortcode and any(
-                        key in item for key in ('video_versions', 'carousel_media', 'image_versions2')):
+                        key in item for key in ('video_versions', 'carousel_media', 'image_versions2', 'text_post_app_info')):
                     return item
                 pending.extend(item.values())
             elif isinstance(item, list):
@@ -47,6 +47,18 @@ class VidgetThreadsIE(InfoExtractor):
             raise ExtractorError(
                 'This Threads post is unavailable or requires logging in', expected=True)
 
+        # Quote posts keep their displayed video under share_info rather than on
+        # the outer post. Follow only that explicit attachment, never replies or
+        # recommendations found elsewhere in the page.
+        for _ in range(5):
+            if post.get('video_versions') or post.get('carousel_media'):
+                break
+            app_info = post.get('text_post_app_info') or {}
+            quoted = (app_info.get('share_info') or {}).get('quoted_attachment_post')
+            if not isinstance(quoted, dict):
+                break
+            post = quoted
+        shortcode = post.get('code') or shortcode
         user = post.get('user') or {}
         caption = post.get('caption') or {}
         title = caption.get('text') or f'Threads video {shortcode}'

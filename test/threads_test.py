@@ -48,6 +48,21 @@ class ThreadsTest(unittest.TestCase):
         with self.assertRaisesRegex(ExtractorError, 'no downloadable video'):
             self.extract([{'code': 'TARGET', 'image_versions2': {'candidates': []}}])
 
+    def test_quote_post_uses_its_explicit_video_attachment(self):
+        quoted = self.video('QUOTED')
+        quoted['user'] = {'username': 'original-author'}
+        outer = {'code': 'TARGET', 'video_versions': [], 'carousel_media': None,
+                 'text_post_app_info': {'share_info': {'quoted_attachment_post': quoted}}}
+        info = self.extract([self.video('RECOMMENDED'), outer])
+        self.assertEqual(info['id'], 'QUOTED-1')
+        self.assertEqual(info['uploader'], 'original-author')
+        self.assertEqual(len(info['formats']), 1)
+
+    def test_direct_video_takes_precedence_over_quote(self):
+        post = self.video('TARGET')
+        post['text_post_app_info'] = {'share_info': {'quoted_attachment_post': self.video('QUOTED')}}
+        self.assertEqual(self.extract([post])['id'], 'TARGET-1')
+
     def test_carousel_skips_images_and_deduplicates_formats(self):
         video = self.video('unused')['video_versions'][0]
         info = self.extract([{'code': 'TARGET', 'carousel_media': [

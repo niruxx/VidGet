@@ -175,6 +175,9 @@ test('yt-dlp errors are turned into helpful messages', () => {
   const say = (stderr) => explainYtdlpError({ stderr }, 'fallback');
   assert.match(say("ERROR: Sign in to confirm you're not a bot"), /temporarily blocking/);
   assert.match(say('ERROR: HTTP Error 429: Too Many Requests'), /temporarily blocking/);
+  assert.match(say('ERROR: HTTP Error 403: Forbidden'), /temporarily blocking/);
+  assert.match(say('This Threads post is unavailable or requires logging in'), /requires signing in/);
+  assert.equal(say('This Threads post contains no downloadable video'), 'This post contains no downloadable video.');
   assert.match(say('ERROR: Private video'), /private/);
   assert.match(say('ERROR: Sign in to confirm your age'), /age-restricted/);
   assert.match(say('ERROR: Unsupported URL: https://example.com'), /isn't supported/);

@@ -90,12 +90,13 @@ function hasPlaylistParam(url) {
 // Turns yt-dlp's error output into a message a visitor can act on.
 function explainYtdlpError(err, fallback) {
   const text = String(err?.stderr || err?.message || '');
-  if (/confirm you.?re not a bot|HTTP Error 429|rate.?limit|too many requests/i.test(text)) {
+  if (/confirm you.?re not a bot|HTTP Error (403|429)|rate.?limit|too many requests/i.test(text)) {
     return 'The site is temporarily blocking requests from this server. Please try again later.';
   }
   if (/private video|members.only|join this channel/i.test(text)) return 'This content is private or members-only.';
   if (/sign in to confirm your age|age.restricted|inappropriate for some users/i.test(text)) return "This content is age-restricted, so this server can't download it.";
-  if (/log ?in|logged.in|authentication|cookies/i.test(text)) return 'This site requires signing in to view this content, which this server does not do.';
+  if (/log ?in|logging[ ._-]?in|logged.in|authentication|cookies/i.test(text)) return 'This site requires signing in to view this content, which this server does not do.';
+  if (/no downloadable video/i.test(text)) return 'This post contains no downloadable video.';
   if (/unsupported url/i.test(text)) return "This site isn't supported.";
   if (/video unavailable|not available|removed|does not exist|404/i.test(text)) return 'This content is unavailable. It may have been removed.';
   if (/drm/i.test(text)) return 'This content is DRM-protected and cannot be downloaded.';
@@ -200,6 +201,9 @@ router.get('/info', async (req, res) => {
     await ytdlpUpdater.whenReady();
     info = await ytdlpExec(url, flags);
   } catch (err) {
+    // Keep extractor diagnostics in the server console; the browser receives a
+    // readable message rather than yt-dlp's traceback and implementation details.
+    console.error('yt-dlp metadata extraction failed:', String(err?.stderr || err?.message || err).slice(0, 4000));
     return res.status(502).json({ error: explainYtdlpError(err, 'Could not fetch details for this link. The site may not be supported, or the content may be private, age-restricted, or unavailable.') });
   }
 
