@@ -22,7 +22,7 @@ I18N.register('fr', Object.fromEntries([
   /* Downloader */
   [`Downloader`, `Téléchargeur`],
   [`Save video & audio from the web`, `Enregistrez vidéos et audio depuis le web`],
-  [`Paste a link from YouTube, Vimeo, X, SoundCloud, Twitch and 1,800+ other sites. This server fetches it for you, so the source site never sees your device.`, `Collez un lien YouTube, Vimeo, X, SoundCloud, Twitch ou de plus de 1 800 autres sites. Ce serveur le récupère pour vous : le site d'origine ne voit jamais votre appareil.`],
+  [`Paste a link from YouTube, Threads, Facebook, Instagram, Vimeo, X, SoundCloud, Twitch and 1,800+ other sites. This server fetches it for you, so the source site never sees your device.`, `Collez un lien YouTube, Threads, Facebook, Instagram, Vimeo, X, SoundCloud, Twitch ou de plus de 1 800 autres sites. Ce serveur le récupère pour vous : le site d'origine ne voit jamais votre appareil.`],
   [`Video link`, `Lien de la vidéo`],
   [`Clear`, `Effacer`],
   [`Clear link`, `Effacer le lien`],

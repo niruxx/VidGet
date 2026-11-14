@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const express = require('express');
-const { tmp } = require('../utils/paths');
+const { tmp, ROOT } = require('../utils/paths');
 const { v4: uuidv4 } = require('uuid');
 const sanitize = require('sanitize-filename');
 const ytdlpExec = require('yt-dlp-exec');
@@ -34,6 +34,7 @@ const AUDIO_REENCODE = {
 };
 
 const BASE_FLAGS = {
+  pluginDirs: path.join(ROOT, 'ytdlp-plugins'),
   noWarnings: true,
   noCheckCertificates: true,
   ffmpegLocation: ffmpegPath,
@@ -125,7 +126,8 @@ function summarizeQualities(info, maxQuality) {
 
   const byHeight = new Map();
   for (const f of formats) {
-    if (!f.vcodec || f.vcodec === 'none' || !f.height) continue;
+    // Some social extractors provide dimensions but no codec metadata.
+    if (f.vcodec === 'none' || !f.height) continue;
     if (maxQuality && f.height > maxQuality) continue;
     const best = byHeight.get(f.height);
     if (!best || (Number(f.tbr) || 0) > (Number(best.tbr) || 0)) byHeight.set(f.height, f);
@@ -380,7 +382,9 @@ function buildFormatSelector({ formatId, height, muted }, maxQuality) {
       : `bv*[vcodec^=avc1]${h}+ba[ext=m4a]/b[ext=mp4]${h}/bv*${h}+ba/b${h}`;
   }
   if (muted) return `${formatId ? `${formatId}${h}/` : ''}bv${h}/bv*${h}/b${h}`;
-  return `${formatId ? `${formatId}${h}+ba/` : ''}bv*${h}+ba/b${h}`;
+  // Social sites commonly offer video and audio in a single format. Preserve
+  // the selected quality when there is no separate audio track to merge.
+  return `${formatId ? `${formatId}${h}+ba/${formatId}${h}/` : ''}bv*${h}+ba/b${h}`;
 }
 
 async function runDownload(jobId, o) {
@@ -601,5 +605,7 @@ router.get('/result/:jobId', (req, res) => {
 
 router.AUDIO_FORMATS = AUDIO_FORMATS;
 router.explainYtdlpError = explainYtdlpError;
+router.buildFormatSelector = buildFormatSelector;
+router.summarizeQualities = summarizeQualities;
 
 module.exports = router;

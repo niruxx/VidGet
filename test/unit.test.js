@@ -181,6 +181,26 @@ test('yt-dlp errors are turned into helpful messages', () => {
   assert.equal(say('something else entirely'), 'fallback');
 });
 
+test('selected social video quality falls back to the same combined format', () => {
+  const { buildFormatSelector } = require('../routes/youtube');
+  assert.equal(buildFormatSelector({ formatId: 'http-0' }, 0), 'http-0+ba/http-0/bv*+ba/b');
+  assert.equal(buildFormatSelector({ formatId: 'hd', height: 720 }, 1080),
+    'hd[height<=720]+ba/hd[height<=720]/bv*[height<=720]+ba/b[height<=720]');
+  assert.equal(buildFormatSelector({}, 0), 'bv*+ba/b');
+});
+
+test('social video qualities remain selectable without codec metadata', () => {
+  const { summarizeQualities } = require('../routes/youtube');
+  const qualities = summarizeQualities({ formats: [
+    { format_id: 'hd', height: 720 },
+    { format_id: 'full-hd', height: 1080 },
+    { format_id: 'audio', height: 720, vcodec: 'none' },
+  ] }, 720);
+  assert.equal(qualities.length, 1);
+  assert.equal(qualities[0].formatId, 'hd');
+  assert.equal(qualities[0].codec, '');
+});
+
 /* ---------- Translations ---------- */
 function loadDictionary(code) {
   let entries = null;

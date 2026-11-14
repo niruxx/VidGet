@@ -2,7 +2,7 @@
 
 A self-hosted, privacy-first media toolkit that anyone can host and anyone can use. No ads, no accounts, no subscriptions, no tracking.
 
-- **Downloader**: paste a link from YouTube or 1,800+ other sites (via yt-dlp).
+- **Downloader**: paste a link from YouTube, Threads, Facebook, Instagram or 1,800+ other sites (via yt-dlp and a bundled Threads extractor).
   - **What you can save:** video by quality, with codec, frame rate, HDR and estimated size shown, or a "most compatible" H.264 MP4. Audio as MP3, M4A, Opus, FLAC or WAV, plus the thumbnail.
   - **Options:** only part of a video (a clip), video without audio, embedded subtitles or a separate `.srt` file, cover art and metadata, edited audio tags, loudness normalization, and cutting out sponsor segments with SponsorBlock.
   - **Batches:** load a playlist and pick which entries to download, or paste several links. Either way they go into a download queue in your browser.
@@ -133,6 +133,8 @@ Everything can also be set in `/admin`. These variables override `config.json`, 
 | `VIDGET_VAAPI_DEVICE` | `/dev/dri/renderD128` | GPU device for VAAPI hardware encoding on Linux |
 
 ## Notes
+
+- Social downloads work with publicly accessible videos: Facebook videos and Reels, Instagram video posts and Reels, and Threads post links on `threads.com` or `threads.net` (including `/t/` and `/share/` links). Threads posts with several videos currently download the first video. Photos and text-only posts are not supported. Private, age-restricted or login-required content cannot be downloaded; no account cookies are collected. Availability depends on what each site permits this server to access.
 
 - Finished files are served from `tmp/` and deleted after the link expires (30 minutes by default). Copies go into `Saves/video`, `Saves/audio` and `Saves/Uploaded` only if the admin turns on "Keep a copy". Duplicate names there get a ` (1)`, ` (2)`, etc. suffix.
 - Uploads are deleted as soon as they've been converted, or when they expire.
